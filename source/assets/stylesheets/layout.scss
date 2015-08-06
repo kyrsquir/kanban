@@ -1,0 +1,42 @@
+@import "variables";
+
+/* Layout */
+.main-nav {
+  margin-bottom: 20px;
+}
+
+.main-container {
+  margin: 4rem auto;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+/* Settings panel */
+#settings {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 300px;
+  height: 100%;
+  background: #e2e4e6;
+  padding: 80px 10px 40px 10px;
+  transition: right 0.3s ease-in-out 0s;
+  -webkit-transition: right 0.3s ease-in-out 0s;
+  -moz-transition: right 0.3s ease-in-out 0s;
+  -o-transition: right 0.3s ease-in-out 0s;
+  box-shadow: 0 0 6px rgba(0,0,0,.4);
+
+  .color-box {
+    width: 60px;
+    border-radius: 3px;
+    background-size: cover;
+    display: inline-block;
+    height: 45px;
+    position: relative;
+    width: 47%;
+
+    &:nth-child(1n) {
+      margin-right: 8px;
+    }
+  }
+}

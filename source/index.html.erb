@@ -1,0 +1,35 @@
+<div class="overflow">
+  <div class="row-fluid">
+    <article v-repeat="list: lists"
+    data-id="{{list.id}}">
+      <list val="{{list}}"></list>
+
+      <!-- <div v-show="showListForm">
+        <input type="text" value="{{list.name}}">
+        <button value="Submit" on="submit: saveList">Save</button>
+        <p>This is a v-show directive!</p>
+      </div> -->
+
+      <div v-repeat="card: list.cards" class="cards">
+        <card val="{{card}}"></card>
+      </div>
+
+      <p data-list-id="{{list-id}}"
+      v-on="click: addCard(list)" class="add-card">
+      Add a card...
+      </p>
+    </article>
+
+    <article>
+      <input type="text" placeholder="Add a list..." class="form-control"
+        v-model="newList"
+        v-on="keyup: addList | key 'enter'">
+    </article>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function(){
+    Vue.config.debug = true
+  });
+</script>
