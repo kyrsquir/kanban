@@ -72,7 +72,7 @@ end
 activate :deploy do |deploy|
   deploy.build_before = true
   deploy.method = :git
-  deploy.remote = 'https://github/olimart/kanban.git'
+  deploy.remote = 'https://github.com/olimart/kanban.git'
 end
 
 
