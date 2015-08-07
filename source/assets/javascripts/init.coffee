@@ -57,8 +57,6 @@ App =
         changeBackground: (color) ->
           this.board.backgroundColor = color
 
-        # onClick: (e) ->
-        #  console.log e.target.tagName
         addList: ->
           console.log this.newList
           value = this.newList.replace(/^\s+|\s+$/g, "")
@@ -123,6 +121,11 @@ App =
             view: 'cardName'
           methods:
             toggle: (view, val) ->
+              # TODO
+              # fin open card(s) and close (form)
+              console.log lists
+              for list in lists
+                console.log list.name
               this.view = view
         cardName:
           props: ['val', 'on-done']
@@ -130,6 +133,7 @@ App =
           methods:
             edit: ->
               this.onDone('cardForm')
+
         cardForm:
           props: ['val', 'on-done']
           template: "<textarea v-model='val.name' rows='3' class='form-control mb1 card-input' autofocus></textarea>
@@ -147,15 +151,6 @@ App =
       filters:
         marked: marked
     )
-
-mic_component =
-  props: ['val']
-  template: '<component is="{{view}}" val="{{val}}" on-done="{{toggle}}" keep-alive></component>'
-  data:
-    view: 'name'
-  methods:
-    toggle: (view, val) ->
-      this.view = view
 
 # Inititalize main component
 new App.init
