@@ -1,22 +1,16 @@
 <div class="overflow">
   <div class="row-fluid">
-    <article v-repeat="list: lists"
+    <article v-repeat="list: lists | orderBy 'position'"
     data-id="{{list.id}}"
     v-draggable="y: {index: $index, dragged: 'dragged'}"
     v-dropzone="y: sort(lists, $index, $droptag, $dropdata)"
     >
       <list val="{{list}}"></list>
 
-      <!-- <div v-show="showListForm">
-        <input type="text" value="{{list.name}}">
-        <button value="Submit" on="submit: saveList">Save</button>
-        <p>This is a v-show directive!</p>
-      </div> -->
-
-      <div v-repeat="card: list.cards" class="cards" 
+      <div v-repeat="card: list.cards | orderBy 'position'" class="cards"
         v-draggable="x: {index: $index, dragged: 'dragged'}"
         v-dropzone="
-        x: sort(list.cards, $index, $droptag, $dropdata), 
+        x: sort(list.cards, $index, $droptag, $dropdata),
         x: move(list.cards, $index, $droptag, $dropdata)"
         >
         <card val="{{card}}"></card>

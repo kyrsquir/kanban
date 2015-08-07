@@ -10,25 +10,30 @@ App =
           backgroundColor: '519839'
         }
         newList: ''
-        showListForm: false
         showSettings: false
         # sample data
         lists: [
-          { id: 1, name: "List1", cards: [
-            { id: 1, name: 'Card A'},
-            { id: 2, name: 'Card B'},
-          ] },
-          { id: 2, name: "List2", cards: [
-            { id: 3, name: 'Card C'}
-          ] },
-          { id: 3, name: "List3", cards: [
-            { id: 4, name: 'Card D'},
-            { id: 5, name: 'Card E'},
-            { id: 6, name: 'Card F'},
-          ] },
-          { id: 4, name: "List4", cards: [] },
-          { id: 5, name: "List5", cards: [] },
-          { id: 6, name: "List6", cards: [] }
+          { id: 1, name: "List 1", position: 1,
+          cards: [
+              { id: 1, name: 'Card A', position: 1 },
+              { id: 2, name: 'Card B', position: 2 },
+            ]
+          },
+          { id: 2, name: "List 2", position: 2,
+          cards: [
+              { id: 3, name: 'Card C', position: 1 }
+            ]
+          },
+          { id: 3, name: "List 3", position: 4,
+          cards: [
+              { id: 4, name: 'Card D', position: 1 },
+              { id: 5, name: 'Card E', position: 3 },
+              { id: 6, name: 'Card F', position: 2 },
+            ]
+          },
+          { id: 4, name: "List 4", position: 6, cards: [] },
+          { id: 5, name: "List 5", position: 5, cards: [] },
+          { id: 6, name: "List 6", position: 3, cards: [] }
         ]
         colors: ['0079bf', 'd29034', '519839', 'b04632', '89609e',
                  'cd5a91', '4bbf6b', '00aecc', '838c91', '333',
@@ -74,7 +79,7 @@ App =
           console.log(tmp, data.index);
           list.splice data.index, 1
           list.splice id, 0, tmp
-        
+
         move: () ->
           console.log('moving');
 
