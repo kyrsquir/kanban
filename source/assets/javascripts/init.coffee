@@ -1,7 +1,8 @@
 App =
   init: ->
     console.log "Initializing"
-    Vue.use(VueDnd);
+    Vue.use(VueDnd)
+
     lists = new Vue(
       el: "body"
       data:
@@ -11,6 +12,7 @@ App =
         }
         newList: ''
         showSettings: false
+        showModal: false
         # sample data
         lists: [
           { id: 1, name: "List 1", position: 1,
@@ -60,7 +62,11 @@ App =
         addList: ->
           console.log this.newList
           value = this.newList.replace(/^\s+|\s+$/g, "")
-          this.lists.push({ name: value, cards: [] })
+          # TODO
+          # make sure new list comes last
+          lastIndex = lists.length + 1
+          console.log lastIndex
+          this.lists.push({ name: value, cards: [], position: 10 })
           this.newList = ''
           # console.log e.target.tagName
         saveList: ->
@@ -68,9 +74,11 @@ App =
           console.log value
 
         addCard: (list) ->
+          # TODO
+          # make sure new list comes last
           # value = this.$set.newCard.replace(/^\s+|\s+$/g, "")
           value = "test"
-          list.cards.push({ name: value })
+          list.cards.push({ name: value, position: 10 })
         sort: (list, id, tag, data) ->
           console.log(list, data);
           tmp = list[data.index]
@@ -82,7 +90,6 @@ App =
           console.log('moving');
 
       components:
-        # mic: mic_component
         list:
           props: ['val']
           template: '<component is="{{view}}" val="{{val}}" on-done="{{toggle}}" keep-alive></component>'

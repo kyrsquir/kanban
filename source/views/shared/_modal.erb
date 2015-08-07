@@ -1,0 +1,39 @@
+<!-- template for the modal component -->
+<template id="modal-template">
+  <div class="modal-mask" v-show="show" v-transition="modal">
+    <div class="modal-wrapper">
+      <div class="modal-container">
+        <content select=".modal-header">
+          <div class="modal-header">
+            default header
+          </div>
+        </content>
+        <content select=".modal-body">
+          <div class="modal-body">
+            default body
+          </div>
+        </content>
+        <content select=".modal-footer">
+          <div class="modal-footer">
+            default footer
+          </div>
+        </content>
+      </div>
+    </div>
+  </div>
+</template>
+
+
+<modal show="{{showModal}}">
+  <!--
+    you can use custom content here to overwrite
+    default content
+  -->
+  <div class="modal-header">
+    custom header
+    <button class="pull-right"
+      v-on="click: show = false">
+      Close
+    </button>
+  </div>
+</modal>

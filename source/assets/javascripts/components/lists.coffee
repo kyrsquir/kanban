@@ -1,6 +1,5 @@
 # Vue.use 'vue-element'
 
-
 mic_component =
   props: ['val'],
   template: '<component is="{{view}}" val="{{val}}" on-done="{{toggle}}" keep-alive></component>',

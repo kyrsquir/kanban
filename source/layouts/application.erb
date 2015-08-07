@@ -19,6 +19,8 @@
     <div class="container-fluid main-container" >
       <%= yield %>
     </div>
+
+    <%= partial "views/shared/modal" %>
     <%= javascript_include_tag  "application" %>
   </body>
 </html>
