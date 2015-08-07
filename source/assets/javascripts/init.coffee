@@ -1,7 +1,7 @@
 App =
   init: ->
     console.log "Initializing"
-
+    Vue.use(VueDnd);
     lists = new Vue(
       el: "body"
       data:
@@ -68,6 +68,15 @@ App =
           # value = this.$set.newCard.replace(/^\s+|\s+$/g, "")
           value = "test"
           list.cards.push({ name: value })
+        sort: (list, id, tag, data) ->
+          console.log(list, data);
+          tmp = list[data.index]
+          console.log(tmp, data.index);
+          list.splice data.index, 1
+          list.splice id, 0, tmp
+        
+        move: () ->
+          console.log('moving');
 
       components:
         # mic: mic_component

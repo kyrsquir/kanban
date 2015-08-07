@@ -1,7 +1,10 @@
 <div class="overflow">
   <div class="row-fluid">
     <article v-repeat="list: lists"
-    data-id="{{list.id}}">
+    data-id="{{list.id}}"
+    v-draggable="y: {index: $index, dragged: 'dragged'}"
+    v-dropzone="y: sort(lists, $index, $droptag, $dropdata)"
+    >
       <list val="{{list}}"></list>
 
       <!-- <div v-show="showListForm">
@@ -10,7 +13,12 @@
         <p>This is a v-show directive!</p>
       </div> -->
 
-      <div v-repeat="card: list.cards" class="cards">
+      <div v-repeat="card: list.cards" class="cards" 
+        v-draggable="x: {index: $index, dragged: 'dragged'}"
+        v-dropzone="
+        x: sort(list.cards, $index, $droptag, $dropdata), 
+        x: move(list.cards, $index, $droptag, $dropdata)"
+        >
         <card val="{{card}}"></card>
       </div>
 
