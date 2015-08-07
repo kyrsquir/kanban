@@ -1,8 +1,8 @@
 App =
   init: ->
     console.log "Initializing"
-    Vue.use(VueDnd)
-
+    Vue.use(VueDnd);
+    Vue.config.debug = true
     lists = new Vue(
       el: "body"
       data:
@@ -62,23 +62,12 @@ App =
         addList: ->
           console.log this.newList
           value = this.newList.replace(/^\s+|\s+$/g, "")
-          # TODO
-          # make sure new list comes last
-          lastIndex = lists.length + 1
-          console.log lastIndex
-          this.lists.push({ name: value, cards: [], position: 10 })
+          this.lists.push({ name: value, cards: [] })
           this.newList = ''
           # console.log e.target.tagName
         saveList: ->
           value = this.list.name.trim()
           console.log value
-
-        addCard: (list) ->
-          # TODO
-          # make sure new list comes last
-          # value = this.$set.newCard.replace(/^\s+|\s+$/g, "")
-          value = "test"
-          list.cards.push({ name: value, position: 10 })
         sort: (list, id, tag, data) ->
           console.log(list, data);
           tmp = list[data.index]
@@ -90,73 +79,114 @@ App =
           console.log('moving');
 
       components:
+        # mic: mic_component
         list:
-          props: ['val']
-          template: '<component is="{{view}}" val="{{val}}" on-done="{{toggle}}" keep-alive></component>'
+          template: '<article><component is="{{view}}" val="{{list}}" on-done="{{toggle}}"></component>
+                      <div class="cards">
+                        <card v-repeat="card: list.cards | orderBy \'position\'" class="cards"></card>
+                        <p v-on="click: showCreate()" class="add-card" v-if="!enter">
+                        Add a card...
+                        </p>
+                        <div v-if="enter">
+                          <textarea v-model="new_card" v-el="cardInput" rows="3" class="form-control mb1 card-input"></textarea>
+                          <button v-on="click: create()" class="btn btn-success mb2">Save</button>
+                          <button v-on="click: close()" class="btn btn-default mb2">Close</button>
+                        </div>
+                      </div>
+                      </article>'
           data: ->
             view: 'listName'
+            enter: false
+            new_card: ''
+          created: ->
+            this.$on('closeCreate', =>
+              this.enter = false
+            )
           methods:
             toggle: (view, val) ->
               this.view = view
-        listName:
-          props: ['val', 'on-done']
-          template: "<p v-on='click: edit' class='title'>{{ val.name }}</p>"
-          methods:
-            edit: ->
-              this.onDone('listForm')
-        listForm:
-          props: ['val', 'on-done']
-          template: "<input v-model='val.name' class='form-control mb1' autofocus>
-                      <button v-on='click: save' class='btn btn-success mb2'>Save</button>
-                      <button v-on='click: close' class='btn btn-default mb2'>Close</button>"
-          data: ->
-            val: []
-          methods:
+            showCreate: ->
+              this.enter = true
+              # this will toggle the input
+              Vue.nextTick( =>
+                this.$$.cardInput.focus()
+              )
             close: ->
-              original_name = this.val.name
-              console.log this.val.name
-              this.onDone('listName', original_name)
-              console.log original_name
-            save: ->
-              this.onDone('listName', this.val)
-              # sync to server
+              this.enter = false
+            create: () ->
+              console.log('ok');
+              value = this.new_card.replace(/^\s+|\s+$/g, "")
+              if value.trim()
+                this.list.cards.push({ name: value, cards: [] })
+                this.new_card = ''
+                this.enter = false
 
-        card:
-          props: ['val']
-          template: '<component is="{{view}}" val="{{val}}" on-done="{{toggle}}" keep-alive></component>'
-          data: ->
-            view: 'cardName'
-          methods:
-            toggle: (view, val) ->
-              # TODO
-              # fin open card(s) and close (form)
-              console.log lists
-              for list in lists
-                console.log list.name
-              this.view = view
-        cardName:
-          props: ['val', 'on-done']
-          template: "<div v-html='val.name | marked' v-on='click: edit' class='card'></div>"
-          methods:
-            edit: ->
-              this.onDone('cardForm')
+          # child components for list
+          components:
+            listName:
+              props: ['val', 'on-done']
+              template: "<p v-on='click: edit' class='title'>{{ val.name }}</p>"
+              methods:
+                edit: ->
+                  this.onDone('listForm')
+            listForm:
+              props: ['val', 'on-done']
+              template: "
+                          <input v-model='val.name' class='form-control mb1' v-el='listname'>
+                          <button v-on='click: save' class='btn btn-success mb2'>Save</button>
+                          <button v-on='click: close' class='btn btn-default mb2'>Close</button>"
+              created: ->
+                console.log('out');
+                Vue.nextTick( =>
+                  this.$$.listname.focus()
+                )
+              methods:
+                close: ->
+                  original_name = this.val.name
+                  console.log this.val.name
+                  this.onDone('listName', original_name)
+                  console.log original_name
+                save: ->
+                  this.onDone('listName', this.val)
+                  # sync to server
 
-        cardForm:
-          props: ['val', 'on-done']
-          template: "<textarea v-model='val.name' rows='3' class='form-control mb1 card-input' autofocus></textarea>
-                      <button v-on='click: save' class='btn btn-success mb2'>Save</button>
-                      <button v-on='click: close' class='btn btn-default mb2'>Close</button>"
-          data: ->
-            val: []
-          methods:
-            close: ->
-              this.onDone('cardName', this.val)
-            save: ->
-              this.onDone('cardName', this.val)
-              # sync to server
+            card:
+              template: '<component is="{{view}}" val="{{card}}" on-done="{{toggle}}" keep-alive></component>'
+              data: ->
+                view: 'cardName'
 
-      filters:
-        marked: marked
+              created: ->
+                this.$on('closeAll', =>
+                  this.toggle('cardName')
+                )
+              methods:
+                toggle: (view, val) ->
+                  this.view = view
+
+              # child components of card
+              components:
+                cardName:
+                  filters:
+                    marked: marked
+                  props: ['val', 'on-done']
+                  template: "<div v-html='val.name | marked' v-on='click: edit' class='card'></div>"
+                  methods:
+                    edit: ->
+                      this.onDone('cardForm')
+
+                cardForm:
+                  props: ['val', 'on-done']
+                  template: "<textarea v-model='val.name' rows='3' class='form-control mb1 card-input' autofocus></textarea>
+                              <button v-on='click: save' class='btn btn-success mb2'>Save</button>
+                              <button v-on='click: close' class='btn btn-default mb2'>Close</button>"
+                  data: ->
+                    val: []
+                  methods:
+                    close: ->
+                      this.onDone('cardName', this.val)
+                    save: ->
+                      this.onDone('cardName', this.val)
+                      # sync to server
     )
 
 # Inititalize main component
