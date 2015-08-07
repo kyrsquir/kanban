@@ -1,27 +1,6 @@
 <div class="overflow">
   <div class="row-fluid">
-    <article v-repeat="list: lists | orderBy 'position'"
-    data-id="{{list.id}}"
-    v-draggable="y: {index: $index, dragged: 'dragged'}"
-    v-dropzone="y: sort(lists, $index, $droptag, $dropdata)"
-    >
-      <list val="{{list}}"></list>
-
-      <div v-repeat="card: list.cards | orderBy 'position'" class="cards"
-        v-draggable="x: {index: $index, dragged: 'dragged'}"
-        v-dropzone="
-        x: sort(list.cards, $index, $droptag, $dropdata),
-        x: move(list.cards, $index, $droptag, $dropdata)"
-        >
-        <card val="{{card}}"></card>
-      </div>
-
-      <p data-list-id="{{list-id}}"
-      v-on="click: addCard(list)" class="add-card">
-      Add a card...
-      </p>
-    </article>
-
+    <list v-repeat="list: lists | orderBy 'position'"></list>
     <article>
       <input type="text" placeholder="Add a list..." class="form-control"
         v-model="newList"
