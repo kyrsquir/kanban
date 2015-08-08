@@ -10,7 +10,6 @@ App =
           name: 'Kanban'
           backgroundColor: '519839'
         }
-        newList: ''
         showSettings: false
         showModal: false
         # sample data
@@ -42,27 +41,18 @@ App =
                  '202020', '2ecc71', 'ed7669', '272b33']
 
       methods:
-        toggleList: ->
-          console.log "clicked"
-          this.showListForm = !this.showListForm
-        toggle: (list) ->
-          list.name = list.id + " " + list.name
-          console.log list.name
-        toggleListForm: ->
-          # console.log this.el
-          listForm == 'true'
-          console.log listForm
-          # this.$set.listForm = !this.$set.listForm
         toggleSettings: ->
           this.showSettings = !this.showSettings
-          false
+
         changeBackground: (color) ->
           this.board.backgroundColor = color
 
         addList: ->
           console.log this.newList
           value = this.newList.replace(/^\s+|\s+$/g, "")
-          this.lists.push({ name: value, cards: [] })
+          # TODO
+          # set list position to last index
+          this.lists.push({ name: value, position: 10, cards: [] })
           this.newList = ''
           # console.log e.target.tagName
         saveList: ->
@@ -79,7 +69,6 @@ App =
           console.log('moving');
 
       components:
-        # mic: mic_component
         list:
           template: '<article><component is="{{view}}" val="{{list}}" on-done="{{toggle}}"></component>
                       <div class="cards">
@@ -93,7 +82,7 @@ App =
                           <button v-on="click: close()" class="btn btn-default mb2">Close</button>
                         </div>
                       </div>
-                      </article>'
+                    </article>'
           data: ->
             view: 'listName'
             enter: false
@@ -114,10 +103,12 @@ App =
             close: ->
               this.enter = false
             create: () ->
-              console.log('ok');
+              console.log('ok')
               value = this.new_card.replace(/^\s+|\s+$/g, "")
               if value.trim()
-                this.list.cards.push({ name: value, cards: [] })
+                # TODO
+                # set card position to last index
+                this.list.cards.push({ name: value, position: 10, cards: [] })
                 this.new_card = ''
                 this.enter = false
 

@@ -3,11 +3,15 @@
   <div class="modal-mask" v-show="show" v-transition="modal">
     <div class="modal-wrapper">
       <div class="modal-container">
-        <content select=".modal-header">
+
           <div class="modal-header">
-            default header
-          </div>
-        </content>
+            <button type="button" class="close" v-on="click: show = false">
+              <span aria-hidden="true">×</span>
+            </button>
+            <content select=".modal-title">
+            <h4 class="modal-title">default header</h4>
+          </content></div>
+
         <content select=".modal-body">
           <div class="modal-body">
             default body
@@ -25,15 +29,10 @@
 
 
 <modal show="{{showModal}}">
-  <!--
-    you can use custom content here to overwrite
-    default content
-  -->
-  <div class="modal-header">
-    custom header
-    <button class="pull-right"
-      v-on="click: show = false">
-      Close
-    </button>
+  <h4 class="modal-title">
+    custom title
+  </h4>
+  <div class="modal-body">
+    custom body
   </div>
 </modal>
