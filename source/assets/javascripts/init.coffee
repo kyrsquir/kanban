@@ -73,13 +73,13 @@ App =
           template: '<article><component is="{{view}}" val="{{list}}" on-done="{{toggle}}"></component>
                       <div class="cards">
                         <card v-repeat="card: list.cards | orderBy \'position\'" class="cards"></card>
-                        <p v-on="click: showCreate()" class="add-card" v-if="!enter">
+                        <p v-on="click: showCreate" class="add-card" v-if="!enter">
                         Add a card...
                         </p>
                         <div v-if="enter">
-                          <textarea v-model="new_card" v-el="cardInput" rows="3" class="form-control mb1 card-input"></textarea>
-                          <button v-on="click: create()" class="btn btn-success mb2">Save</button>
-                          <button v-on="click: close()" class="btn btn-default mb2">Close</button>
+                          <textarea v-model="new_card" v-el="cardInput" v-on="keyup:create | key "enter"" rows="3" class="form-control mb1 card-input"></textarea>
+                          <button v-on="click: create" class="btn btn-success mb2">Save</button>
+                          <button v-on="click: close" class="btn btn-default mb2">Close</button>
                         </div>
                       </div>
                     </article>'
@@ -102,8 +102,8 @@ App =
               )
             close: ->
               this.enter = false
-            create: () ->
-              console.log('ok')
+            create: ->
+              console.log 'card created'
               value = this.new_card.replace(/^\s+|\s+$/g, "")
               if value.trim()
                 # TODO
@@ -138,6 +138,7 @@ App =
                   this.onDone('listName', original_name)
                   console.log original_name
                 save: ->
+                  console.log 'list saved'
                   this.onDone('listName', this.val)
                   # sync to server
 
@@ -176,6 +177,7 @@ App =
                     close: ->
                       this.onDone('cardName', this.val)
                     save: ->
+                      console.log 'card saved'
                       this.onDone('cardName', this.val)
                       # sync to server
     )

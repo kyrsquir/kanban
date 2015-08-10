@@ -20,11 +20,8 @@
   height: 100%;
   background: #e2e4e6;
   padding: 80px 10px 40px 10px;
-  transition: right 0.3s ease-in-out 0s;
-  -webkit-transition: right 0.3s ease-in-out 0s;
-  -moz-transition: right 0.3s ease-in-out 0s;
-  -o-transition: right 0.3s ease-in-out 0s;
   box-shadow: 0 0 6px rgba(0,0,0,.4);
+  transition: all .3s ease;
 
   .color-box {
     width: 60px;
@@ -39,4 +36,15 @@
       margin-right: 8px;
     }
   }
+}
+
+/*
+ * the following styles are auto-applied to elements with
+ * v-transition="settings" when their visiblity is toggled
+ * by Vue.js.
+ */
+.settings-enter,
+.settings-leave {
+  -webkit-transform: scale(1.1);
+  transform: scale(1.1);
 }
