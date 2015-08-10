@@ -74,43 +74,21 @@ App =
                       <div class="cards">
                         <card v-repeat="card: list.cards | orderBy \'position\'" class="cards"></card>
                         <p v-on="click: showCreate" class="add-card" v-if="!enter">
-                        Add a card...
+                          Add a card...
                         </p>
-                        <div v-if="enter">
-                          <textarea v-model="new_card" v-el="cardInput" v-on="keyup:create | key "enter"" rows="3" class="form-control mb1 card-input"></textarea>
-                          <button v-on="click: create" class="btn btn-success mb2">Save</button>
-                          <button v-on="click: close" class="btn btn-default mb2">Close</button>
-                        </div>
                       </div>
                     </article>'
           data: ->
             view: 'listName'
-            enter: false
-            new_card: ''
-          created: ->
-            this.$on('closeCreate', =>
-              this.enter = false
-            )
           methods:
             toggle: (view, val) ->
               this.view = view
             showCreate: ->
-              this.enter = true
-              # this will toggle the input
-              Vue.nextTick( =>
-                this.$$.cardInput.focus()
-              )
-            close: ->
-              this.enter = false
-            create: ->
-              console.log 'card created'
-              value = this.new_card.replace(/^\s+|\s+$/g, "")
-              if value.trim()
-                # TODO
-                # set card position to last index
-                this.list.cards.push({ name: value, position: 10, cards: [] })
-                this.new_card = ''
-                this.enter = false
+              position = 0
+              if(this.list.cards.length > 0)
+                lastItem = this.list.cards[this.list.cards.length - 1]
+                position = lastItem.position
+              this.list.cards.push({ name: "New", position: position++})
 
           # child components for list
           components:
@@ -146,11 +124,6 @@ App =
               template: '<component is="{{view}}" val="{{card}}" on-done="{{toggle}}" keep-alive></component>'
               data: ->
                 view: 'cardName'
-
-              created: ->
-                this.$on('closeAll', =>
-                  this.toggle('cardName')
-                )
               methods:
                 toggle: (view, val) ->
                   this.view = view
