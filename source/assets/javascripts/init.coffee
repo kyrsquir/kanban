@@ -6,13 +6,15 @@ App =
     lists = new Vue(
       el: "body"
       data:
+        boards: null
+        showSettings: false
+        showBoards: false
+        showModal: false
+        # sample data
         board: {
           name: 'Kanban'
           backgroundColor: '519839'
         }
-        showSettings: false
-        showModal: false
-        # sample data
         lists: [
           { id: 1, name: "List 1", position: 1,
           cards: [
@@ -44,8 +46,26 @@ App =
         toggleSettings: ->
           this.showSettings = !this.showSettings
 
+        toggleBoards: ->
+          console.log this.showBoards
+          if this.showBoards
+            # getBoards
+            this.getBoards
+          this.showBoards = !this.showBoards
+
         changeBackground: (color) ->
           this.board.backgroundColor = color
+
+        getBoards: ->
+          console.log "eee"
+          xhr = new XMLHttpRequest()
+          apiURL = "https://projects-api.herokuapp.com/api/boards"
+          xhr.open('GET', apiURL)
+          xhr.setRequestHeader('Authorization', 'Token token="111"')
+          xhr.onload = ->
+            this.boards = JSON.parse(xhr.response)
+            console.log this.boards
+          xhr.send()
 
         addList: ->
           console.log this.newList
