@@ -77,24 +77,23 @@
 
 
     <div class="container-fluid main-container" >
-      <nav v-show="showSettings" id="settings" v-transition="settings">
-  <p class="text-center"><strong>Settings</strong></p>
+      <nav v-show="showBoards" id="boards" v-transition="boards">
+  <p class="text-center"><strong>Boards</strong></p>
   <hr class="dark-divider">
 
-  <p>
-    <label for="board['name']">Board Name</label>
-    <input type="text" v-model="currentBoard.name" class="form-control">
+  <p class="text-center">
+    {{boards.length}} {{boards.length | pluralize 'board'}}
   </p>
 
-  <p>
-    <label>Background Color</label>
-  </p>
-  <!-- <input type="text" placeholder="519839" v-model='board.backgroundColor' class="form-control"> -->
-  <div class="colors mb2">
-    <span v-repeat="color: colors" class="color-box" style="background-color:#{{color}};" v-on="click: changeBackground(color)"></span>
+  <div class="form-group">
+    <input v-model="searchBoards" class="form-control" placeholder="Search boards...">
   </div>
-
-  <button class="btn btn-success btn-block" v-on="click: saveBoard">Save</button>
+  <ul class="nav nav-sidebar">
+    <li v-repeat="board: boards | filterBy searchBoards" class="list-unstyled">
+      <a href="#" v-on="click: setCurrentBoard(board)">
+        <span class="color-box" style="background-color:#{{board.background_color}};"></span>{{board.name}}</a>
+    </li>
+  </ul>
 </nav>
 
     </div>
