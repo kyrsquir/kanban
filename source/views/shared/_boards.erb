@@ -2,7 +2,17 @@
   <p class="text-center"><strong>Boards</strong></p>
   <hr class="dark-divider">
 
-  <ul v-repeat="board: boards">
-    <li>{{board.name}}</li>
+  <p class="text-center">
+    {{boards.length}} {{boards.length | pluralize 'board'}}
+  </p>
+
+  <div class="form-group">
+    <input v-model="searchBoards" class="form-control" placeholder="Search boards...">
+  </div>
+  <ul class="nav nav-sidebar">
+    <li v-repeat="board: boards | filterBy searchBoards" class="list-unstyled">
+      <a href="#">
+        <span class="color-box" style="background-color:#{{board.background_color}};"></span>{{board.name}}</a>
+    </li>
   </ul>
 </nav>

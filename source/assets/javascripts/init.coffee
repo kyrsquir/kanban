@@ -1,12 +1,22 @@
 App =
   init: ->
     console.log "Initializing"
-    Vue.use(VueDnd);
+    for i in [VueResource, VueDnd]
+      Vue.use(i)
     Vue.config.debug = true
-    lists = new Vue(
+    Vue.http.headers.common['Authorization'] = 'Token token="111"'
+    new Vue(
       el: "body"
+      ready: ->
+        # debugger
+        # @getBoards
+        apiURL = "https://projects-api.herokuapp.com/api/boards"
+        @$http.get(apiURL, (data, status, request) ->
+          @$set 'boards', data
+        ).error (data, status, request) ->
+          console.log status + ' - ' + request
       data:
-        boards: null
+        boards: []
         showSettings: false
         showBoards: false
         showModal: false
@@ -47,17 +57,13 @@ App =
           this.showSettings = !this.showSettings
 
         toggleBoards: ->
-          console.log this.showBoards
-          if this.showBoards
-            # getBoards
-            this.getBoards
           this.showBoards = !this.showBoards
 
         changeBackground: (color) ->
           this.board.backgroundColor = color
 
         getBoards: ->
-          console.log "eee"
+          console.log "fetching"
           xhr = new XMLHttpRequest()
           apiURL = "https://projects-api.herokuapp.com/api/boards"
           xhr.open('GET', apiURL)
