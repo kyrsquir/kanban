@@ -4,16 +4,16 @@
 
   <p>
     <label for="board['name']">Board Name</label>
-    <input type="text" v-model="board.name" class="form-control">
+    <input type="text" v-model="currentBoard.name" class="form-control">
   </p>
 
   <p>
-    <label for="board['backgroundColor']">Background Color</label>
+    <label>Background Color</label>
   </p>
   <!-- <input type="text" placeholder="519839" v-model='board.backgroundColor' class="form-control"> -->
   <div class="colors mb2">
     <span v-repeat="color: colors" class="color-box" style="background-color:#{{color}};" v-on="click: changeBackground(color)"></span>
   </div>
 
-  <button class="btn btn-success btn-block">Save</button>
+  <button class="btn btn-success btn-block" v-on="click: saveBoard">Save</button>
 </nav>

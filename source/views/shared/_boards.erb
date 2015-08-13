@@ -11,7 +11,7 @@
   </div>
   <ul class="nav nav-sidebar">
     <li v-repeat="board: boards | filterBy searchBoards" class="list-unstyled">
-      <a href="#">
+      <a href="#" v-on="click: setCurrentBoard(board)">
         <span class="color-box" style="background-color:#{{board.background_color}};"></span>{{board.name}}</a>
     </li>
   </ul>
