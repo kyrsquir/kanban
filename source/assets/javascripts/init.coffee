@@ -6,7 +6,7 @@ App =
     Vue.config.debug = true
     Vue.http.headers.common['Content-type'] = 'application/json'
     Vue.http.headers.common['Authorization'] = 'Token token="111"'
-    apiURL = "https://projects-api.herokuapp.com/api"
+    apiURL = "https://api-kanban.herokuapp.com/api"
     # apiURL = "http://localhost:3025/api"
     boardsURL = apiURL + '/boards'
 
@@ -38,14 +38,20 @@ App =
           this.currentBoard.background_color = color
 
         saveBoard: ->
+          @updateBoard()
+          @toggleSettings()
+
+        updateBoard: ->
           boardURL = apiURL + '/boards/' + @currentBoard.id
           @$http.put(boardURL,
-            {name: @currentBoard.name
-            background_color: @currentBoard.background_color},
+            {
+              name: @currentBoard.name
+              background_color: @currentBoard.background_color
+              lists: @lists
+            },
             (data, status, request) ->
           ).error (data, status, request) ->
             console.log status + ' - ' + request
-          @toggleSettings()
 
         setCurrentBoard: (board) ->
           @currentBoard = board
@@ -60,22 +66,23 @@ App =
             console.log status + ' - ' + request
 
         addList: ->
-          console.log this.newList
-          value = this.newList.replace(/^\s+|\s+$/g, "")
-          # TODO
-          # set list position to last index
-          @lists.push({ name: value, position: 10 })
+          console.log @newList
+          value = @newList.replace(/^\s+|\s+$/g, "")
+
+          position = 0
+          if @lists.length > 0
+            position = @lists.length + 1
+          @lists.push({
+            name: value
+            position: position
+          })
           @newList = ''
-          currentBoardURL = boardsURL + '/' + @currentBoard.id
-          @$http.put(currentBoardURL,
-           { lists: @lists },
-           (data, status, request) ->
-          ).error (data, status, request) ->
-            console.log status + ' - ' + request
+          @updateBoard()
 
         saveList: ->
           value = this.list.name.trim()
           console.log value
+
         sort: (list, id, tag, data) ->
           console.log(list, data);
           tmp = list[data.index]
@@ -91,7 +98,7 @@ App =
           template: '<article><component is="{{view}}" val="{{list}}" on-done="{{toggle}}"></component>
                       <div class="cards">
                         <card v-repeat="card: list.cards | orderBy \'position\'" class="cards"></card>
-                        <p v-on="click: showCreate" class="add-card" v-if="!enter">
+                        <p v-on="click: showCreate" class="add-link" v-if="!enter">
                           Add a card...
                         </p>
                       </div>
@@ -103,10 +110,13 @@ App =
               this.view = view
             showCreate: ->
               position = 0
-              if(this.list.cards.length > 0)
+              if this.list.cards.length > 0
                 lastItem = this.list.cards[this.list.cards.length - 1]
                 position = lastItem.position
-              this.list.cards.push({ name: "New", position: position++})
+              this.list.cards.push({
+                name: "New"
+                position: position++
+              })
 
           # child components for list
           components:
@@ -136,7 +146,7 @@ App =
                 save: ->
                   console.log 'list saved'
                   this.onDone('listName', this.val)
-                  # sync to server
+                  # @updateBoard()
 
             card:
               template: '<component is="{{view}}" val="{{card}}" on-done="{{toggle}}" keep-alive></component>'
@@ -152,10 +162,12 @@ App =
                   filters:
                     marked: marked
                   props: ['val', 'on-done']
-                  template: "<div v-html='val.name | marked' v-on='click: edit' class='card'></div>"
+                  template: "<div class='card'><span class='glyphicon glyphicon-pencil pull-right' v-on='click: edit'></span><component v-html='val.name | marked' v-on='click: show'>{{val.name}}</component></div>"
                   methods:
                     edit: ->
                       this.onDone('cardForm')
+                    show: ->
+                      this.onDone('cardModal')
 
                 cardForm:
                   props: ['val', 'on-done']
@@ -171,6 +183,23 @@ App =
                       console.log 'card saved'
                       this.onDone('cardName', this.val)
                       # sync to server
+                      # @updateBoard()
+
+                cardModal:
+                  props: ['val', 'on-done']
+                  template: '
+                    <modal show="{{true}}">
+                      <h4 class="modal-title">
+                        {{val.name}}
+                      </h4>
+                      <div class="modal-body">
+                        <p>Comments: {{val.comments}}</p>
+                        <p>Tags: {{val.tags}}</p>
+                        <p>Members: {{val.members}}</p>
+                        <p>Delete</p>
+                        <p>Archive</p>
+                      </div>
+                    </modal>'
     )
 
 # Inititalize main component

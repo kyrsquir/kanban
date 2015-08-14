@@ -26,6 +26,13 @@
       }
     }
   }
+}
 
+/* Links */
+.add-link {
+  color: $light-grey;
 
+  &:hover {
+    color: $primary;
+  }
 }
