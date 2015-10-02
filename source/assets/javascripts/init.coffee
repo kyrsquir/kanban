@@ -114,9 +114,10 @@ App =
                 lastItem = this.list.cards[this.list.cards.length - 1]
                 position = lastItem.position
               this.list.cards.push({
-                name: "New"
+                name: "New Card"
                 position: position++
               })
+
 
           # child components for list
           components:
@@ -183,6 +184,7 @@ App =
                       console.log 'card saved'
                       this.onDone('cardName', this.val)
                       # sync to server
+                      # TODO Bug fix
                       # @updateBoard()
 
                 cardModal:
