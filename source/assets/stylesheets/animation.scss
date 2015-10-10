@@ -1,0 +1,8 @@
+@mixin default-transition {
+  transition: all .3s ease;
+}
+
+@mixin scale {
+  -webkit-transform: scale(1.1);
+          transform: scale(1.1);
+}
