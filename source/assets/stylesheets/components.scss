@@ -41,8 +41,36 @@
   cursor: move;
 }
 
-.cards .card.x,
-p.x,
-.add-link.x{
-  border-top: 3px solid $primary;
+.card p {
+  margin: 0;
+}
+
+@mixin dropzone() {
+  background-color: $light-grey;
+}
+
+.row-fluid .list-dropzone {
+  width: 15px;
+  padding: 0;
+  background: none;
+  align-self: stretch;
+
+  &.y {
+    @include dropzone();
+  }
+}
+
+.card-dropzone {
+  height: 10px;
+
+  &.x {
+    @include dropzone();
+  }
+}
+.add-link{
+  margin: 0;
+
+  &.x {
+    @include dropzone();
+  }
 }

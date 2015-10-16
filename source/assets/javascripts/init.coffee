@@ -1,11 +1,11 @@
-getElementIndex = (arrOfObj, key, value) ->
-  i = undefined
-  length = arrOfObj.length
-  i = 0
-  while i < length
-    if arrOfObj[i][key] == value
+Array::move = (dragIndex, dropIndex) ->
+  dropIndex-- if dragIndex < dropIndex
+  @splice dropIndex, 0, @splice(dragIndex, 1)[0]
+
+Array::getElementIndex = (key, value) ->
+  for v, i in @
+    if v[key] == value
       return i
-    i++
   -1
 
 App =
@@ -103,13 +103,21 @@ App =
         move: () ->
           console.log('moving');
 
+        dropList: (drag) ->
+          lists = @.lists
+          dragPosition = lists.getElementIndex 'slug', drag.list.slug
+          lists.push lists.splice(dragPosition, 1)[0]
+          # @updateBoard()
+
       components:
         list:
-          template: '<article>\
+          template: '<article class="list-dropzone" v-dropzone="y: moveList($dropdata, list)"></article>
+                     <article>\
                        <component is="{{view}}" val="{{list}}" list="{{list}}" on-done="{{toggle}}"></component>\
                        <div class="cards">\
-                           <card v-repeat="card: list.cards | orderBy \'position\'"></card>\
-                           <p v-on="click: showCreate" class="add-link" v-if="!enter" v-dropzone="x: add($dropdata)">\
+                           <card v-repeat="card: list.cards"></card>\
+                           <div class="card-dropzone" v-dropzone="x: dropCard($dropdata)"></div>\
+                           <p v-on="click: showCreate" class="add-link" v-if="!enter">\
                                Add a card...\
                            </p>\
                        </div>\
@@ -125,32 +133,29 @@ App =
                 name: "New Card"
                 position: position
               })
-              ###position = 0
-              if this.list.cards.length > 0
-                lastItem = this.list.cards[this.list.cards.length - 1]
-                position = lastItem.position
-              this.list.cards.push({
-                name: "New Card"
-                position: position++
-              })###
-            add: (drag) ->
+            moveList: (drag, dropZone) ->
+              lists = @$parent.lists
+              dragIndex = lists.getElementIndex 'slug', drag.list.slug
+              dropIndex = lists.getElementIndex 'slug', dropZone.slug
+              lists.move dragIndex, dropIndex
+              # @$parent.updateBoard()
+            dropCard: (drag) ->
               dropCards = @list.cards
               lists = @$parent.lists
-              dragList = lists[getElementIndex(lists, 'name', drag.list.name)]
+              dragList = lists[lists.getElementIndex 'slug', drag.list.slug]
               dragCards = dragList.cards
-              dragPosition = drag.card.position
-              dragIndex = getElementIndex(dragCards, 'position', dragPosition)
-              dropCards.push dragCards.splice(dragIndex, 1)[0]
-              dropCards[dropCards.length - 1].position = dropCards.length
-              while i < length
-                if dragCards[i].position > dragPosition
-                  dragCards[i].position--
-                i++
+              dragPosition = dragCards.getElementIndex 'slug', drag.card.slug
+              dropCards.push dragCards.splice(dragPosition, 1)[0]
+              # @$parent.updateBoard()
           # child components for list
           components:
             listName:
               props: ['val', 'on-done']
-              template: "<p v-on='click: edit' class='title'>{{ val.name }}</p>"
+              template: '<p class="title"\
+                            v-on="click: edit"\
+                            v-draggable="y: {list: val}">\
+                            {{ val.name }}\
+                         </p>'
               methods:
                 edit: ->
                   this.onDone('listForm')
@@ -174,7 +179,6 @@ App =
                   console.log 'list saved'
                   this.onDone('listName', this.val)
                   # @updateBoard()
-
             card:
               inherit: true
               template: '<component is="{{view}}" val="{{card}}" list="{{list}}" on-done="{{toggle}}" keep-alive></component>'
@@ -183,16 +187,14 @@ App =
               methods:
                 toggle: (view, val) ->
                   this.view = view
-
               # child components of card
               components:
                 cardName:
                   filters:
                     marked: marked
                   props: ['val', 'on-done', 'list']
-                  template: '<div class="card"\
-                                  v-draggable="x: {card: val, list: list}"\
-                                  v-dropzone="x: move($dropdata, val, list)">\
+                  template: '<div class="card-dropzone" v-dropzone="x: moveCard($dropdata, val, list)"></div>
+                             <div class="card" v-draggable="x: {card: val, list: list, dragged: \'dragged\'}"\
                                <span class="glyphicon glyphicon-pencil pull-right"\
                                      v-on="click: edit">\
                                </span>\
@@ -206,54 +208,20 @@ App =
                       this.onDone('cardForm')
                     show: ->
                       this.onDone('cardModal')
-                    move: (drag, dropCard, dropList) ->
+                    moveCard: (drag, dropZone, dropList) ->
                       lists = @$parent.$parent.$parent.lists
-                      dragList = lists[getElementIndex(lists, 'name', drag.list.name)]
-                      dragPosition = drag.card.position
-                      dropPosition = dropCard.position
-                      dragCards = dragList.cards
-                      dropCards = dropList.cards
-                      dragIndex = getElementIndex(dragCards, 'position', dragPosition)
-                      dropIndex = getElementIndex(dropCards, 'position', dropPosition)
-                      dragElement = dragCards[dragIndex]
-                      dropElement = dropCards[dropIndex]
-                      targetPosition = dropPosition
-
-                      ###var drag1 = dragCards.map(function (obj) {
-                       return obj.name + ' ' + obj.position
-                       }),
-                       drop1 = dropCards.map(function (obj) {
-                       return obj.name + ' ' + obj.position
-                       });
-                      ###
-                      if drag.list.name == dropList.name
-                        dragElement.position = dropPosition
-                        dropElement.position = dragPosition
+                      dragListId = drag.list.slug
+                      dropListId = dropList.slug
+                      dragList = lists[lists.getElementIndex 'slug', dragListId]
+                      dragListCards = dragList.cards
+                      dropListCards = dropList.cards
+                      dragPosition = dragListCards.getElementIndex 'slug', drag.card.slug
+                      dropPosition = dropListCards.getElementIndex 'slug', dropZone.slug
+                      if dragListId == dropListId
+                        dragListCards.move dragPosition, dropPosition
                       else
-                        plucked = dragCards.splice(dragIndex, 1)[0]
-                        plucked.position = targetPosition
-                        dropCards.push plucked
-                        i = 0
-                        length = dragCards.length
-                        while i < length
-                          if dragCards[i].position > dragPosition
-                            dragCards[i].position--
-                          i++
-                        i = 0
-                        length = dropCards.length
-                        while i < length - 1
-                          if dropCards[i].position >= targetPosition
-                            dropCards[i].position++
-                          i++
-                        ###var drag2 = dragCards.map(function (obj) {
-                         return obj.name + ' ' + obj.position
-                         }),
-                         drop2 = dropCards.map(function (obj) {
-                         return obj.name + ' ' + obj.position
-                         });
-                         console.log('dragcards', drag1, '->', drag2);
-                         console.log('dropcards', drop1, '->', drop2);
-                        ###
+                        dropListCards.splice dropPosition, 0, dragListCards.splice(dragPosition, 1)[0]
+                      # @$parent.$parent.$parent.updateBoard()
                 cardForm:
                   props: ['val', 'on-done']
                   template: "<textarea v-model='val.name' rows='3' class='form-control mb1 card-input' autofocus></textarea>

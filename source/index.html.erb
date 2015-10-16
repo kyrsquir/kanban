@@ -1,7 +1,7 @@
 <div class="overflow">
   <div class="row-fluid">
-
-    <list v-repeat="list: lists | orderBy 'position'"></list>
+    <list v-repeat="list: lists"></list>
+    <article class="list-dropzone" v-dropzone="y: dropList($dropdata)"></article>
     <article>
       <input type="text" placeholder="Add a list..." class="form-control"
         v-model="newList"
