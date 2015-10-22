@@ -235,10 +235,7 @@ App =
                       this.onDone('cardName', this.val)
                     save: ->
                       console.log 'card saved'
-                      this.onDone('cardName', this.val)
-                      # sync to server
-                      # TODO Bug fix
-                      # @updateBoard()
+                      @$parent.$parent.$parent.updateBoard()
 
                 cardModal:
                   props: ['val', 'on-done']
