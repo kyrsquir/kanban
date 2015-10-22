@@ -52,6 +52,7 @@ App =
           @toggleSettings()
 
         updateBoard: ->
+          console.log 'updateBoard', @lists
           boardURL = apiURL + '/boards/' + @currentBoard.id
           @$http.put(boardURL,
             {
@@ -107,7 +108,7 @@ App =
           lists = @.lists
           dragPosition = lists.getElementIndex 'slug', drag.list.slug
           lists.push lists.splice(dragPosition, 1)[0]
-          # @updateBoard()
+          @updateBoard()
 
       components:
         list:
@@ -115,7 +116,7 @@ App =
                      <article>\
                        <component is="{{view}}" val="{{list}}" list="{{list}}" on-done="{{toggle}}"></component>\
                        <div class="cards">\
-                           <card v-repeat="card: list.cards"></card>\
+                           <card v-repeat="card: list.cards" track-by="slug"></card>\
                            <div class="card-dropzone" v-dropzone="x: dropCard($dropdata)"></div>\
                            <p v-on="click: showCreate" class="add-link" v-if="!enter">\
                                Add a card...\
@@ -138,7 +139,7 @@ App =
               dragIndex = lists.getElementIndex 'slug', drag.list.slug
               dropIndex = lists.getElementIndex 'slug', dropZone.slug
               lists.move dragIndex, dropIndex
-              # @$parent.updateBoard()
+              @$parent.updateBoard()
             dropCard: (drag) ->
               dropCards = @list.cards
               lists = @$parent.lists
@@ -146,7 +147,7 @@ App =
               dragCards = dragList.cards
               dragPosition = dragCards.getElementIndex 'slug', drag.card.slug
               dropCards.push dragCards.splice(dragPosition, 1)[0]
-              # @$parent.updateBoard()
+              @$parent.updateBoard()
           # child components for list
           components:
             listName:
@@ -194,7 +195,7 @@ App =
                     marked: marked
                   props: ['val', 'on-done', 'list']
                   template: '<div class="card-dropzone" v-dropzone="x: moveCard($dropdata, val, list)"></div>
-                             <div class="card" v-draggable="x: {card: val, list: list, dragged: \'dragged\'}"\
+                             <div class="card" v-draggable="x: {card: val, list: list, dragged: \'dragged\'}">\
                                <span class="glyphicon glyphicon-pencil pull-right"\
                                      v-on="click: edit">\
                                </span>\
@@ -221,7 +222,7 @@ App =
                         dragListCards.move dragPosition, dropPosition
                       else
                         dropListCards.splice dropPosition, 0, dragListCards.splice(dragPosition, 1)[0]
-                      # @$parent.$parent.$parent.updateBoard()
+                      @$parent.$parent.$parent.updateBoard()
                 cardForm:
                   props: ['val', 'on-done']
                   template: "<textarea v-model='val.name' rows='3' class='form-control mb1 card-input' autofocus></textarea>

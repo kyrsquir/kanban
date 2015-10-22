@@ -51,6 +51,9 @@
       color: transparent;
       margin-top: $margin-vertical;
       margin-right: $margin-horizontal;
+      &:hover {
+        cursor: pointer;
+      }
     }
 
     &:hover {
