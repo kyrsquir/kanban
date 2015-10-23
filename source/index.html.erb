@@ -1,6 +1,6 @@
 <div class="overflow">
   <div class="row-fluid">
-    <list v-repeat="list: lists" track-by="slug"></list>
+    <list v-repeat="list: lists" track-by="$index"></list>
     <article class="list-dropzone" v-dropzone="y: dropList($dropdata)"></article>
     <article>
       <input type="text" placeholder="Add a list..." class="form-control"

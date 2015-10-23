@@ -116,7 +116,7 @@ App =
                      <article>\
                        <component is="{{view}}" val="{{list}}" list="{{list}}" on-done="{{toggle}}"></component>\
                        <div class="cards">\
-                           <card v-repeat="card: list.cards" track-by="slug"></card>\
+                           <card v-repeat="card: list.cards" track-by="$index"></card>\
                            <div class="card-dropzone" v-dropzone="x: dropCard($dropdata)"></div>\
                            <p v-on="click: showCreate" class="add-link" v-if="!enter">\
                                Add a card...\
