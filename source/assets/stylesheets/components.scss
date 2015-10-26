@@ -38,7 +38,9 @@
 }
 
 [draggable=true] {
-  cursor: move;
+  cursor: grab;
+  cursor: -webkit-grab;
+  cursor: -moz-grab;
 }
 
 .card p {

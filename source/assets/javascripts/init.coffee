@@ -80,12 +80,8 @@ App =
           console.log @newList
           value = @newList.replace(/^\s+|\s+$/g, "")
 
-          position = 0
-          if @lists.length > 0
-            position = @lists.length + 1
           @lists.push({
             name: value
-            position: position
           })
           @newList = ''
           @updateBoard()
@@ -129,10 +125,8 @@ App =
             toggle: (view, val) ->
               this.view = view
             showCreate: ->
-              position = @list.cards.length + 1
               this.list.cards.push({
                 name: "New Card"
-                position: position
               })
             moveList: (drag, dropZone) ->
               lists = @$parent.lists
