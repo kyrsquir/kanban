@@ -71,6 +71,10 @@ App =
             @$set 'boards', data
             @$set 'currentBoard', data[1]
             @$set 'lists', data[1].lists
+            # remove empty card names
+#            for list in data[1].lists
+#              for card in list.cards
+#                card.name = 'New card' if card.name.length < 2
           ).error (data, status, request) ->
             console.log status + ' - ' + request
 
@@ -153,7 +157,7 @@ App =
                   @onDone 'listForm'
             listForm:
               props: ['val', 'on-done']
-              template: "<input v-model='val.name' class='form-control mb1' v-el='listname' @keyup.enter='save' autofocus>
+              template: "<input v-model='val.name' class='form-control mb1' v-el='listname' @keypress.enter.prevent='save' @keyup.esc='close' autofocus>
                          <button v-on='click: save' class='btn btn-success mb2'>Save</button>
                          <button v-on='click: close' class='btn btn-default mb2'>Close</button>"
               created: ->
@@ -213,8 +217,8 @@ App =
                       @$parent.$parent.$parent.updateBoard()
                 cardForm:
                   props: ['val', 'on-done']
-                  template: "<textarea v-model='val.name' rows='3' class='form-control mb1 card-input' v-el='cardname' autofocus></textarea>
-                             <button v-on='click: save' class='btn btn-success mb2'>Save</button>
+                  template: "<textarea v-model='val.name' rows='3' class='form-control mb1 card-input' v-el='cardname' @keypress.enter.prevent='save(true)' @keyup.esc='close' autofocus></textarea>
+                             <button v-on='click: save(false)' class='btn btn-success mb2'>Save</button>
                              <button v-on='click: close' class='btn btn-default mb2'>Close</button>"
                   data: ->
                     val: []
@@ -230,11 +234,14 @@ App =
                       else
                         # new card
                         @$parent.$parent.list.cards.pop()
-                    save: ->
+                    save: (andCreateNext) ->
                       if !!@val.name
-                        @$parent.$parent.$parent.updateBoard()
+                        cardComponent = @$parent
+                        listComponent = cardComponent.$parent
+                        cards = listComponent.list.cards
+                        listComponent.showCreate() if andCreateNext && cardComponent.card.slug == cards[cards.length - 1].slug
+                        listComponent.$parent.updateBoard()
                         @onDone 'cardName'
-
                 cardModal:
                   props: ['val', 'on-done']
                   template: '<modal show="{{true}}">
