@@ -10,9 +10,9 @@ Array::getElementIndex = (key, value) ->
 
 App =
   init: ->
-    console.log "Initializing"
+    console.log "Initializing started"
     for i in [VueResource, VueDnd]
-      Vue.use(i)
+      Vue.use i
     Vue.config.debug = true
     Vue.http.headers.common['Content-type'] = 'application/json'
     Vue.http.headers.common['Authorization'] = 'Token token="111"'
@@ -39,13 +39,13 @@ App =
 
       methods:
         toggleSettings: ->
-          this.showSettings = !this.showSettings
+          @showSettings = !@showSettings
 
         toggleBoards: ->
-          this.showBoards = !this.showBoards
+          @showBoards = !@showBoards
 
         changeBackground: (color) ->
-          this.currentBoard.background_color = color
+          @currentBoard.background_color = color
 
         saveBoard: ->
           @updateBoard()
@@ -55,11 +55,9 @@ App =
           console.log 'updateBoard', @lists
           boardURL = apiURL + '/boards/' + @currentBoard.id
           @$http.put(boardURL,
-            {
               name: @currentBoard.name
               background_color: @currentBoard.background_color
               lists: @lists
-            },
             (data, status, request) ->
           ).error (data, status, request) ->
             console.log status + ' - ' + request
@@ -78,27 +76,23 @@ App =
 
         addList: ->
           console.log @newList
-          value = @newList.replace(/^\s+|\s+$/g, "")
-
-          @lists.push({
+          value = @newList.replace /^\s+|\s+$/g, ""
+          @lists.push
             name: value
-          })
           @newList = ''
           @updateBoard()
 
         saveList: ->
-          value = this.list.name.trim()
-          console.log value
+          value = @list.name.trim()
+          @updateBoard()
 
         sort: (list, id, tag, data) ->
-          console.log(list, data);
           tmp = list[data.index]
-          console.log(tmp, data.index);
           list.splice data.index, 1
           list.splice id, 0, tmp
 
         move: () ->
-          console.log('moving');
+          console.log 'moving';
 
         dropList: (drag) ->
           lists = @.lists
@@ -108,7 +102,8 @@ App =
 
       components:
         list:
-          template: '<article class="list-dropzone" v-dropzone="y: moveList($dropdata, list)"></article>
+          template: '<pre>{{ list | json }}</pre>
+                     <article class="list-dropzone" v-dropzone="y: moveList($dropdata, list)"></article>
                      <article>\
                        <component is="{{view}}" val="{{list}}" list="{{list}}" on-done="{{toggle}}"></component>\
                        <div class="cards">\
@@ -122,12 +117,13 @@ App =
           data: ->
             view: 'listName'
           methods:
-            toggle: (view, val) ->
-              this.view = view
+            toggle: (view) ->
+              @view = view
             showCreate: ->
-              this.list.cards.push({
-                name: "New Card"
-              })
+              @list.cards.push
+                name: ''
+              children = @$children
+              Vue.nextTick => children[children.length - 1].toggle 'cardForm'
             moveList: (drag, dropZone) ->
               lists = @$parent.lists
               dragIndex = lists.getElementIndex 'slug', drag.list.slug
@@ -153,35 +149,32 @@ App =
                          </p>'
               methods:
                 edit: ->
-                  this.onDone('listForm')
+                  @val.oldName = @val.name
+                  @onDone 'listForm'
             listForm:
               props: ['val', 'on-done']
-              template: "<input v-model='val.name' class='form-control mb1' v-el='listname'>
+              template: "<input v-model='val.name' class='form-control mb1' v-el='listname' @keyup.enter='save' autofocus>
                          <button v-on='click: save' class='btn btn-success mb2'>Save</button>
                          <button v-on='click: close' class='btn btn-default mb2'>Close</button>"
               created: ->
-                console.log('out');
-                Vue.nextTick(=>
-                  this.$$.listname.focus()
-                )
+                Vue.nextTick =>
+                  @$$.listname.focus()
               methods:
                 close: ->
-                  original_name = this.val.name
-                  console.log this.val.name
-                  this.onDone('listName', original_name)
-                  console.log original_name
+                  @val.name = @val.oldName
+                  @onDone 'listName'
                 save: ->
-                  console.log 'list saved'
-                  this.onDone('listName', this.val)
-                  # @updateBoard()
+                  if !!@val.name
+                    @$parent.$parent.updateBoard()
+                    @onDone 'listName'
             card:
               inherit: true
               template: '<component is="{{view}}" val="{{card}}" list="{{list}}" on-done="{{toggle}}" keep-alive></component>'
               data: ->
                 view: 'cardName'
               methods:
-                toggle: (view, val) ->
-                  this.view = view
+                toggle: (view) ->
+                  @view = view
               # child components of card
               components:
                 cardName:
@@ -200,9 +193,10 @@ App =
                              </div>'
                   methods:
                     edit: ->
-                      this.onDone('cardForm')
+                      @val.oldName = @val.name
+                      @onDone 'cardForm'
                     show: ->
-                      this.onDone('cardModal')
+                      @onDone 'cardModal'
                     moveCard: (drag, dropZone, dropList) ->
                       lists = @$parent.$parent.$parent.lists
                       dragListId = drag.list.slug
@@ -219,34 +213,43 @@ App =
                       @$parent.$parent.$parent.updateBoard()
                 cardForm:
                   props: ['val', 'on-done']
-                  template: "<textarea v-model='val.name' rows='3' class='form-control mb1 card-input' autofocus></textarea>
+                  template: "<textarea v-model='val.name' rows='3' class='form-control mb1 card-input' v-el='cardname' autofocus></textarea>
                              <button v-on='click: save' class='btn btn-success mb2'>Save</button>
                              <button v-on='click: close' class='btn btn-default mb2'>Close</button>"
                   data: ->
                     val: []
+                  created: ->
+                    Vue.nextTick =>
+                      @$$.cardname.focus()
                   methods:
                     close: ->
-                      this.onDone('cardName', this.val)
+                      if @val.oldName?
+                        # existing card
+                        @val.name = @val.oldName
+                        @onDone 'cardName'
+                      else
+                        # new card
+                        @$parent.$parent.list.cards.pop()
                     save: ->
-                      console.log 'card saved'
-                      @$parent.$parent.$parent.updateBoard()
+                      if !!@val.name
+                        @$parent.$parent.$parent.updateBoard()
+                        @onDone 'cardName'
 
                 cardModal:
                   props: ['val', 'on-done']
-                  template: '
-                      <modal show="{{true}}">
-                        <h4 class="modal-title">
-                          {{val.name}}
-                        </h4>
-                        <div class="modal-body">
-                          <p>Comments: {{val.comments}}</p>
-                          <p>Tags: {{val.tags}}</p>
-                          <p>Members: {{val.members}}</p>
-                          <p>Delete</p>
-                          <p>Archive</p>
-                        </div>
-                      </modal>'
+                  template: '<modal show="{{true}}">
+                               <h4 class="modal-title">
+                                 {{val.name}}
+                               </h4>
+                               <div class="modal-body">
+                                 <p>Comments: {{val.comments}}</p>
+                                 <p>Tags: {{val.tags}}</p>
+                                 <p>Members: {{val.members}}</p>
+                                 <p>Delete</p>
+                                 <p>Archive</p>
+                               </div>
+                             </modal>'
     )
-
+    console.log "Initializing finished"
 # Inititalize main component
 new App.init

@@ -1,0 +1,13 @@
+{
+  "name": "kanban",
+  "version": "0.0.1",
+  "dependencies": {
+    "vue": "vue#1.0.0-migration",
+    "vue-resource": "latest"
+  },
+  "install": {
+    "path": {
+      "js": "source/assets/javascripts/vendor"
+    }
+  }
+}

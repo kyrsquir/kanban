@@ -72,3 +72,8 @@
 .boards-leave {
   @include scale;
 }
+
+pre {
+  min-width: 250px !important;
+  display: none;
+}
