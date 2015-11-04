@@ -83,6 +83,8 @@ App =
           value = @newList.replace /^\s+|\s+$/g, ""
           @lists.push
             name: value
+            active: false
+            cards: []
           @newList = ''
           @updateBoard()
 
@@ -94,9 +96,6 @@ App =
           tmp = list[data.index]
           list.splice data.index, 1
           list.splice id, 0, tmp
-
-        move: () ->
-          console.log 'moving';
 
         dropList: (drag) ->
           lists = @.lists
@@ -124,6 +123,7 @@ App =
             toggle: (view) ->
               @view = view
             showCreate: ->
+              console.log @list
               @list.cards.push
                 name: ''
               children = @$children
