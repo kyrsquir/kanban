@@ -3,9 +3,11 @@
     <list v-repeat="list: lists" track-by="$index"></list>
     <article class="list-dropzone" v-dropzone="y: dropList($dropdata)"></article>
     <article>
-      <input type="text" placeholder="Add a list..." class="form-control"
-        v-model="newList"
-        v-on="keyup: addList | key 'enter'">
+      <input type="text"
+             placeholder="Add a list..."
+             class="form-control"
+             v-model="newList"
+             v-on="keyup: addList | key 'enter'">
     </article>
   </div>
 </div>

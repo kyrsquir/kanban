@@ -10,23 +10,22 @@ Array::getElementIndex = (key, value) ->
 
 App =
   init: ->
-    console.log "Initializing started"
+    console.log 'Initializing started'
     for i in [VueResource, VueDnd]
       Vue.use i
     Vue.config.debug = true
     Vue.http.headers.common['Content-type'] = 'application/json'
     Vue.http.headers.common['Authorization'] = 'Token token="111"'
-    apiURL = "https://api-kanban.herokuapp.com/api"
-    # apiURL = "http://localhost:3025/api"
-    boardsURL = apiURL + '/boards'
 
-    new Vue(
-      el: "body"
+    new Vue
+      el: 'body'
 
       ready: ->
         @getBoards()
 
       data:
+#        apiURL: 'http://localhost:3025/api'
+        apiURL: 'https://api-kanban.herokuapp.com/api'
         boards: []
         currentBoard: {}
         lists: []
@@ -53,21 +52,22 @@ App =
 
         updateBoard: ->
           console.log 'updateBoard', @lists
-          boardURL = apiURL + '/boards/' + @currentBoard.id
-          @$http.put(boardURL,
+          @$http.put(@apiURL + '/boards/' + @currentBoard.id,
               name: @currentBoard.name
               background_color: @currentBoard.background_color
               lists: @lists
             (data, status, request) ->
+              console.log status + ' - ' + request
           ).error (data, status, request) ->
             console.log status + ' - ' + request
 
         setCurrentBoard: (board) ->
           @currentBoard = board
           @lists = board.lists
+          @showBoards = false
 
         getBoards: ->
-          @$http.get(boardsURL, (data, status, request) ->
+          @$http.get(@apiURL + '/boards', (data, status, request) ->
             @$set 'boards', data
             @$set 'currentBoard', data[1]
             @$set 'lists', data[1].lists
@@ -79,7 +79,6 @@ App =
             console.log status + ' - ' + request
 
         addList: ->
-          console.log @newList
           value = @newList.replace /^\s+|\s+$/g, ""
           @lists.push
             name: value
@@ -107,15 +106,15 @@ App =
         list:
           template: '<pre>{{ list | json }}</pre>
                      <article class="list-dropzone" v-dropzone="y: moveList($dropdata, list)"></article>
-                     <article>\
-                       <component is="{{view}}" val="{{list}}" list="{{list}}" on-done="{{toggle}}"></component>\
-                       <div class="cards">\
-                           <card v-repeat="card: list.cards" track-by="$index"></card>\
-                           <div class="card-dropzone" v-dropzone="x: dropCard($dropdata)"></div>\
-                           <p v-on="click: showCreate" class="add-link" v-if="!enter">\
-                               Add a card...\
-                           </p>\
-                       </div>\
+                     <article>
+                       <component is="{{view}}" val="{{list}}" list="{{list}}" on-done="{{toggle}}"></component>
+                       <div class="cards">
+                         <card v-repeat="card: list.cards" track-by="$index"></card>
+                         <div class="card-dropzone" v-dropzone="x: dropCard($dropdata)"></div>
+                         <p v-on="click: showCreate" class="add-link" v-if="!enter">
+                           Add a card...
+                         </p>
+                       </div>
                      </article>'
           data: ->
             view: 'listName'
@@ -123,7 +122,6 @@ App =
             toggle: (view) ->
               @view = view
             showCreate: ->
-              console.log @list
               @list.cards.push
                 name: ''
               children = @$children
@@ -146,23 +144,19 @@ App =
           components:
             listName:
               props: ['val', 'on-done']
-              template: '<p class="title"\
-                            v-on="click: edit"\
-                            v-draggable="y: {list: val}">\
-                            {{ val.name }}\
-                         </p>'
+              template: '<p class="title" v-on="click: edit" v-draggable="y: {list: val}">{{ val.name }}</p>'
               methods:
                 edit: ->
                   @val.oldName = @val.name
                   @onDone 'listForm'
             listForm:
               props: ['val', 'on-done']
-              template: "<input v-model='val.name' class='form-control mb1' v-el='listname' @keypress.enter.prevent='save' @keyup.esc='close' autofocus>
-                         <button v-on='click: save' class='btn btn-success mb2'>Save</button>
-                         <button v-on='click: close' class='btn btn-default mb2'>Close</button>"
+              template: '<input v-model="val.name" class="form-control mb1" v-el="listNameInput" @keypress.enter.prevent="save" @keyup.esc="close" autofocus>
+                         <button v-on="click: save" class="btn btn-success mb2">Save</button>
+                         <button v-on="click: close" class="btn btn-default mb2">Close</button>'
               created: ->
                 Vue.nextTick =>
-                  @$$.listname.focus()
+                  @$$.listNameInput.focus()
               methods:
                 close: ->
                   @val.name = @val.oldName
@@ -186,14 +180,12 @@ App =
                     marked: marked
                   props: ['val', 'on-done', 'list']
                   template: '<div class="card-dropzone" v-dropzone="x: moveCard($dropdata, val, list)"></div>
-                             <div class="card" v-draggable="x: {card: val, list: list, dragged: \'dragged\'}">\
-                               <span class="glyphicon glyphicon-pencil pull-right"\
-                                     v-on="click: edit">\
-                               </span>\
-                               <component v-html="val.name | marked"\
-                                          v-on="click: show">\
-                                 {{val.name}}\
-                               </component>\
+                             <div class="card" v-draggable="x: {card: val, list: list, dragged: \'dragged\'}">
+                               <span class="glyphicon glyphicon-pencil pull-right" v-on="click: edit">
+                               </span>
+                               <component v-html="val.name | marked" v-on="click: show">
+                                 {{val.name}}
+                               </component>
                              </div>'
                   methods:
                     edit: ->
@@ -217,9 +209,16 @@ App =
                       @$parent.$parent.$parent.updateBoard()
                 cardForm:
                   props: ['val', 'on-done']
-                  template: "<textarea v-model='val.name' rows='3' class='form-control mb1 card-input' v-el='cardname' @keypress.enter.prevent='save(true)' @keyup.esc='close' autofocus></textarea>
-                             <button v-on='click: save(false)' class='btn btn-success mb2'>Save</button>
-                             <button v-on='click: close' class='btn btn-default mb2'>Close</button>"
+                  template: '<textarea v-model="val.name"
+                                       rows="3"
+                                       class="form-control mb1 card-input"
+                                       v-el="cardname"
+                                       @keypress.enter.prevent="save(true)"
+                                       @keyup.esc="close"
+                                       autofocus>
+                             </textarea>
+                             <button v-on="click: save(false)" class="btn btn-success mb2">Save</button>
+                             <button v-on="click: close" class="btn btn-default mb2">Close</button>'
                   data: ->
                     val: []
                   created: ->
@@ -256,7 +255,6 @@ App =
                                  <p>Archive</p>
                                </div>
                              </modal>'
-    )
-    console.log "Initializing finished"
+    console.log 'Initializing finished'
 # Inititalize main component
 new App.init
