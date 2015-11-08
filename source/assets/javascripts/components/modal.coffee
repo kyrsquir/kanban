@@ -5,3 +5,6 @@ Vue.component 'modal',
       type: Boolean
       required: true
       twoWay: true
+  methods:
+    close: ->
+      @$parent.showModal = false

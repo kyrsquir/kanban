@@ -69,10 +69,10 @@ App =
         getBoards: ->
           @$http.get @apiURL + '/boards', (data) ->
             @$set 'boards', data
-            @$set 'currentBoard', data[1]
-            @$set 'lists', data[1].lists
+            @$set 'currentBoard', data[0]
+            @$set 'lists', data[0].lists
             # remove empty card names
-#            for list in data[1].lists
+#            for list in data[0].lists
 #              for card in list.cards
 #                card.name = 'New card' if card.name.length < 2
           .error (data, status, request) ->
@@ -107,28 +107,28 @@ App =
           template: '<pre>{{ list | json }}</pre>
                      <article class="list-dropzone" v-dropzone="y: moveList($dropdata, list)"></article>
                      <article>
-                       <component is="{{view}}" val="{{list}}" list="{{list}}" on-done="{{toggle}}"></component>
+                       <component :is="view" list="{{list}}" toggle-list="{{toggle}}"></component>
                        <div class="cards">
                          <card v-repeat="card: list.cards" track-by="$index"></card>
                          <div class="card-dropzone" v-dropzone="x: dropCard($dropdata)"></div>
-                         <p v-on="click: showCreate" class="add-link" v-if="!enter">
+                         <p v-on="click: createNewCard" class="add-link" v-if="!isBeingEdited">
                            Add new card...
                          </p>
                        </div>
                      </article>'
           data: ->
-            enter: false
+            isBeingEdited: false
             view: 'listName'
           methods:
             toggle: (view) ->
               @view = view
-            showCreate: ->
+            createNewCard: ->
               @list.cards.push
                 name: ''
               children = @$children
               Vue.nextTick =>
                 children[children.length - 1].toggle 'cardForm'
-                @enter = true
+                @isBeingEdited = true
             moveList: (drag, dropZone) ->
               lists = @$parent.lists
               dragIndex = lists.getElementIndex 'slug', drag.list.slug
@@ -146,15 +146,15 @@ App =
           # child components for list
           components:
             listName:
-              props: ['val', 'on-done']
-              template: '<p class="title" v-on="click: edit" v-draggable="y: {list: val}">{{ val.name }}</p>'
+              props: ['list', 'toggle-list']
+              template: '<p class="title" v-on="click: edit" v-draggable="y: {list: list}">{{ list.name }}</p>'
               methods:
                 edit: ->
-                  @val.oldName = @val.name
-                  @onDone 'listForm'
+                  @list.oldName = @list.name
+                  @toggleList 'listForm'
             listForm:
-              props: ['val', 'on-done']
-              template: '<input v-model="val.name" class="form-control mb1" v-el="listNameInput" @keypress.enter.prevent="save" @keyup.esc="close" autofocus>
+              props: ['list', 'toggle-list']
+              template: '<input v-model="list.name" class="form-control mb1" v-el="listNameInput" @keypress.enter.prevent="save" @keyup.esc="close" autofocus>
                          <button v-on="click: save" class="btn btn-success mb2">Save</button>
                          <button v-on="click: close" class="btn btn-default mb2">Close</button>'
               created: ->
@@ -162,22 +162,22 @@ App =
                   @$$.listNameInput.focus()
               methods:
                 close: ->
-                  @val.name = @val.oldName
-                  @onDone 'listName'
+                  @list.name = @list.oldName
+                  @toggleList 'listName'
                 save: ->
-                  if !!@val.name
+                  if !!@list.name
                     @$parent.$parent.updateBoard()
-                    @onDone 'listName'
+                    @toggleList 'listName'
             card:
               inherit: true
-              template: '<component is="{{view}}" val="{{card}}" list="{{list}}" on-done="{{toggle}}" keep-alive></component>'
+              template: '<component :is="view" card="{{card}}" list="{{list}}" toggle-card="{{toggle}}" keep-alive></component>'
               data: ->
                 view: 'cardName'
               methods:
                 toggle: (view) ->
                   if view == 'cardForm'
                     for component in @$parent.$parent.$children
-                      if component.enter
+                      if component.isBeingEdited
                         for childComponent in component.$children
                           if childComponent.view == 'cardForm'
                             childComponent.$children[1].close()
@@ -187,22 +187,34 @@ App =
                 cardName:
                   filters:
                     marked: marked
-                  props: ['val', 'on-done', 'list']
-                  template: '<div class="card-dropzone" v-dropzone="x: moveCard($dropdata, val, list)"></div>
-                             <div class="card" v-draggable="x: {card: val, list: list, dragged: \'dragged\'}">
+                  props: ['card', 'toggle-card', 'list']
+                  data: ->
+                    showModal: false
+                  template: '<div class="card-dropzone" v-dropzone="x: moveCard($dropdata, card, list)"></div>
+                             <div class="card" v-draggable="x: {card: card, list: list, dragged: \'dragged\'}">
                                <span class="glyphicon glyphicon-pencil pull-right" v-on="click: edit">
                                </span>
-                               <component v-html="val.name | marked" v-on="click: show">
-                                 {{val.name}}
+                               <component v-html="card.name | marked" v-on="click: showModal = true">
+                                 {{card.name}}
                                </component>
-                             </div>'
+                             </div>
+                             <modal show="{{true}}" v-if="showModal">
+                               <h4 class="modal-title">
+                                 {{card.name}}
+                               </h4>
+                               <div class="modal-body">
+                                 <p>Comments: {{card.comments}}</p>
+                                 <p>Tags: {{card.tags}}</p>
+                                 <p>Members: {{card.members}}</p>
+                                 <p>Delete</p>
+                                 <p>Archive</p>
+                               </div>
+                             </modal>'
                   methods:
                     edit: ->
-                      @val.oldName = @val.name
-                      @onDone 'cardForm'
-                      @$parent.$parent.enter = true
-                    show: ->
-                      @onDone 'cardModal'
+                      @card.oldName = @card.name
+                      @toggleCard 'cardForm'
+                      @$parent.$parent.isBeingEdited = true
                     moveCard: (drag, dropZone, dropList) ->
                       boardComponent = @$parent.$parent.$parent
                       lists = boardComponent.lists
@@ -219,8 +231,8 @@ App =
                         dropListCards.splice dropPosition, 0, dragListCards.splice(dragPosition, 1)[0]
                       boardComponent.updateBoard()
                 cardForm:
-                  props: ['val', 'on-done']
-                  template: '<textarea v-model="val.name"
+                  props: ['card', 'toggle-card']
+                  template: '<textarea v-model="card.name"
                                        rows="3"
                                        class="form-control mb1 card-input"
                                        v-el="cardname"
@@ -231,44 +243,44 @@ App =
                              <button v-on="click: save(false)" class="btn btn-success mb2">Save</button>
                              <button v-on="click: close" class="btn btn-default mb2">Close</button>'
                   data: ->
-                    val: []
+                    card: []
                   created: ->
                     Vue.nextTick =>
                       @$$.cardname.focus()
                   methods:
                     close: ->
                       listComponent = @$parent.$parent
-                      if @val.oldName?
+                      if @card.oldName?
                         # existing card
-                        @val.name = @val.oldName
-                        @onDone 'cardName'
+                        @card.name = @card.oldName
+                        @toggleCard 'cardName'
                       else
                         # newly created card
                         listComponent.list.cards.pop()
-                      listComponent.enter = false
+                      listComponent.isBeingEdited = false
                     save: (andCreateNext) ->
-                      if !!@val.name
+                      if !!@card.name
                         cardComponent = @$parent
                         listComponent = cardComponent.$parent
                         cards = listComponent.list.cards
-                        listComponent.showCreate() if andCreateNext && cardComponent.card.slug == cards[cards.length - 1].slug
                         listComponent.$parent.updateBoard()
-                        @onDone 'cardName'
-                        listComponent.enter = false
-                cardModal:
-                  props: ['val', 'on-done']
+                        @toggleCard 'cardName'
+                        listComponent.isBeingEdited = false
+                        listComponent.createNewCard() if andCreateNext && cardComponent.card.slug == cards[cards.length - 1].slug
+                ###cardModal:
+                  props: ['card', 'toggle-card']
                   template: '<modal show="{{true}}">
                                <h4 class="modal-title">
-                                 {{val.name}}
+                                 {{card.name}}
                                </h4>
                                <div class="modal-body">
-                                 <p>Comments: {{val.comments}}</p>
-                                 <p>Tags: {{val.tags}}</p>
-                                 <p>Members: {{val.members}}</p>
+                                 <p>Comments: {{card.comments}}</p>
+                                 <p>Tags: {{card.tags}}</p>
+                                 <p>Members: {{card.members}}</p>
                                  <p>Delete</p>
                                  <p>Archive</p>
                                </div>
-                             </modal>'
+                             </modal>'###
     console.log 'Initializing finished'
 # Inititalize main component
 new App.init
