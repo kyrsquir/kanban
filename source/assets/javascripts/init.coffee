@@ -11,7 +11,7 @@ Array::getElementIndex = (key, value) ->
 App =
   init: ->
     console.log 'Initializing started'
-    for i in [VueResource, VueDnd]
+    for i in [VueResource, VueRouter, VueDnd]
       Vue.use i
     Vue.config.debug = true
     Vue.http.headers.common['Content-type'] = 'application/json'
@@ -67,7 +67,7 @@ App =
           @showBoards = false
 
         getBoards: ->
-          @$http.get(@apiURL + '/boards', (data, status, request) ->
+          @$http.get @apiURL + '/boards', (data) ->
             @$set 'boards', data
             @$set 'currentBoard', data[1]
             @$set 'lists', data[1].lists
@@ -75,7 +75,7 @@ App =
 #            for list in data[1].lists
 #              for card in list.cards
 #                card.name = 'New card' if card.name.length < 2
-          ).error (data, status, request) ->
+          .error (data, status, request) ->
             console.log status + ' - ' + request
 
         addList: ->

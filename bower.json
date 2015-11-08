@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "dependencies": {
     "vue": "vue#1.0.0-migration",
-    "vue-resource": "latest"
+    "vue-resource": "latest",
+    "vue-router": "latest"
   },
   "install": {
     "path": {
