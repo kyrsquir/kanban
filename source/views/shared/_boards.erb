@@ -15,7 +15,7 @@
     <input v-model="searchBoards" class="form-control" placeholder="Search boards...">
   </div>
   <ul class="nav nav-sidebar">
-    <li v-repeat="board: boards | orderBy 'name' | filterBy searchBoards" class="list-unstyled" track-by="$index">
+    <li v-repeat="board: boards | orderBy 'name' | filterBy searchBoards" class="list-unstyled board" track-by="$index">
       <a href="#" v-on="click: setCurrentBoard(board)">
         <span class="color-box" style="background-color:#{{board.background_color}};"></span>{{board.name}}</a>
     </li>

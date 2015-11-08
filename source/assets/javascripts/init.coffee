@@ -112,11 +112,12 @@ App =
                          <card v-repeat="card: list.cards" track-by="$index"></card>
                          <div class="card-dropzone" v-dropzone="x: dropCard($dropdata)"></div>
                          <p v-on="click: showCreate" class="add-link" v-if="!enter">
-                           Add a card...
+                           Add new card...
                          </p>
                        </div>
                      </article>'
           data: ->
+            enter: false
             view: 'listName'
           methods:
             toggle: (view) ->
@@ -125,7 +126,9 @@ App =
               @list.cards.push
                 name: ''
               children = @$children
-              Vue.nextTick => children[children.length - 1].toggle 'cardForm'
+              Vue.nextTick =>
+                children[children.length - 1].toggle 'cardForm'
+                @enter = true
             moveList: (drag, dropZone) ->
               lists = @$parent.lists
               dragIndex = lists.getElementIndex 'slug', drag.list.slug
@@ -172,6 +175,12 @@ App =
                 view: 'cardName'
               methods:
                 toggle: (view) ->
+                  if view == 'cardForm'
+                    for component in @$parent.$parent.$children
+                      if component.enter
+                        for childComponent in component.$children
+                          if childComponent.view == 'cardForm'
+                            childComponent.$children[1].close()
                   @view = view
               # child components of card
               components:
@@ -191,10 +200,12 @@ App =
                     edit: ->
                       @val.oldName = @val.name
                       @onDone 'cardForm'
+                      @$parent.$parent.enter = true
                     show: ->
                       @onDone 'cardModal'
                     moveCard: (drag, dropZone, dropList) ->
-                      lists = @$parent.$parent.$parent.lists
+                      boardComponent = @$parent.$parent.$parent
+                      lists = boardComponent.lists
                       dragListId = drag.list.slug
                       dropListId = dropList.slug
                       dragList = lists[lists.getElementIndex 'slug', dragListId]
@@ -206,7 +217,7 @@ App =
                         dragListCards.move dragPosition, dropPosition
                       else
                         dropListCards.splice dropPosition, 0, dragListCards.splice(dragPosition, 1)[0]
-                      @$parent.$parent.$parent.updateBoard()
+                      boardComponent.updateBoard()
                 cardForm:
                   props: ['val', 'on-done']
                   template: '<textarea v-model="val.name"
@@ -226,13 +237,15 @@ App =
                       @$$.cardname.focus()
                   methods:
                     close: ->
+                      listComponent = @$parent.$parent
                       if @val.oldName?
                         # existing card
                         @val.name = @val.oldName
                         @onDone 'cardName'
                       else
-                        # new card
-                        @$parent.$parent.list.cards.pop()
+                        # newly created card
+                        listComponent.list.cards.pop()
+                      listComponent.enter = false
                     save: (andCreateNext) ->
                       if !!@val.name
                         cardComponent = @$parent
@@ -241,6 +254,7 @@ App =
                         listComponent.showCreate() if andCreateNext && cardComponent.card.slug == cards[cards.length - 1].slug
                         listComponent.$parent.updateBoard()
                         @onDone 'cardName'
+                        listComponent.enter = false
                 cardModal:
                   props: ['val', 'on-done']
                   template: '<modal show="{{true}}">
