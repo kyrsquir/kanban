@@ -1,4 +1,4 @@
-<nav v-show="showBoards" id="boards" v-transition="boards">
+<nav v-show="showMenu" id="boards" v-transition="boards">
   <p class="text-center">
     <strong>Boards</strong>
     <button type="button" class="close" v-on="click: showBoards = false">
@@ -16,7 +16,7 @@
   </div>
   <ul class="nav nav-sidebar">
     <li v-repeat="board: boards | orderBy 'name' | filterBy searchBoards" class="list-unstyled board" track-by="$index">
-      <a href="#" v-on="click: setCurrentBoard(board)">
+      <a href="#" v-on="click: setCurrentBoard(board.id)">
         <span class="color-box" style="background-color:#{{board.background_color}};"></span>{{board.name}}</a>
     </li>
   </ul>

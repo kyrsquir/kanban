@@ -1,38 +1,26 @@
-Vue.component 'new-board',
-  template: '<p class="mt2 mb2 add-link">
-               <component :is="view" board="{{board}}" toggle-board="{{toggle}}"></component>
-             </p>'
+Vue.component 'board',
   data: ->
-    view: 'createButton'
+    board: {}
+    lists: []
+  template: '<list v-repeat="list: lists" track-by="$index" update="{{update}}" lists="{{lists}}"></list>'
   methods:
-    toggle: (view) ->
-      @view = view
-  components:
-    createButton:
-      props: ['board', 'toggle-board']
-      template: '<button v-on="click: edit" class="btn btn-default mb2">Create new board</button>'
-      methods:
-        edit: ->
-          @toggleBoard 'createForm'
-    createForm:
-      props: ['board', 'toggle-board']
-      template: '<input v-model="board.name" class="form-control mb1" @keypress.enter.prevent="createBoard" @keyup.esc="cancel" autofocus>
-                 <button v-on="click: createBoard" class="btn btn-success mb2">Save</button>
-                 <button v-on="click: cancel" class="btn btn-default mb2">Close</button>'
-      methods:
-        createBoard: ->
-          name = @board.name
-          if !!name
-            root = @$parent.$parent
-            @$http.post(root.apiURL + '/boards',
-                name: name
-                background_color: '0079bf'
-                lists: []
-              (data) ->
-                root.boards.push data
-                root.setCurrentBoard data
-                @toggleBoard 'createButton'
-            ).error (data, status, request) ->
-              console.log status + ' - ' + request
-        cancel: ->
-          @toggleBoard 'createButton'
+    update: ->
+      console.log 'updated board <', @board.name, '> with lists ', @lists
+      @$http.put(@$parent.apiURL + '/boards/' + @board.id,
+          name: @board.name
+          background_color: @board.background_color
+          lists: @lists
+        (data, status, request) ->
+          console.log status + ' - ' + request
+      ).error (data, status, request) ->
+        console.log status + ' - ' + request
+
+    save: ->
+      @update()
+      @$parent.toggleSettings()
+
+    dropList: (drag) ->
+      lists = @lists
+      dragPosition = lists.getElementIndex 'slug', drag.list.slug
+      lists.push lists.splice(dragPosition, 1)[0]
+      @update()

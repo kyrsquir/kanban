@@ -14,11 +14,24 @@
 
   <body style="background-color:#{{currentBoard.background_color}};">
     <%= partial "views/shared/settings" %>
-    <%= partial "views/shared/boards" %>
+    <%= partial "views/shared/menu" %>
     <%= partial "views/shared/header" %>
 
-    <div class="container-fluid main-container" >
-      <%= yield %>
+    <div class="container-fluid main-container">
+      <div class="overflow">
+        <div class="row-fluid">
+          <board lists="{{lists}}"></board>
+          <!--<router-view></router-view>-->
+          <article class="list-dropzone" v-dropzone="y: dropList($dropdata)"></article>
+          <article>
+            <input type="text"
+                   placeholder="Add a list..."
+                   class="form-control"
+                   v-model="newList"
+                   v-on="keyup: addList | key 'enter'">
+          </article>
+        </div>
+      </div>
     </div>
 
     <%= partial "views/shared/modal" %>
