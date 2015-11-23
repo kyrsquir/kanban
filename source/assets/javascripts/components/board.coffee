@@ -1,11 +1,10 @@
 Vue.component 'board',
   data: ->
     board: {}
-    lists: []
-  template: '<list v-repeat="list: lists" track-by="$index" update="{{update}}" lists="{{lists}}"></list>'
+  template: '<lists :update="update" :lists="board.lists"></lists>'
   methods:
     update: ->
-      console.log 'updated board <', @board.name, '> with lists ', @lists
+      console.log 'updated board <', @board.name, '> with lists ', JSON.stringify @lists
       @$http.put(@$parent.apiURL + '/boards/' + @board.id,
           name: @board.name
           background_color: @board.background_color
@@ -14,13 +13,6 @@ Vue.component 'board',
           console.log status + ' - ' + request
       ).error (data, status, request) ->
         console.log status + ' - ' + request
-
     save: ->
       @update()
       @$parent.toggleSettings()
-
-    dropList: (drag) ->
-      lists = @lists
-      dragPosition = lists.getElementIndex 'slug', drag.list.slug
-      lists.push lists.splice(dragPosition, 1)[0]
-      @update()
