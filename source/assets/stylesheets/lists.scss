@@ -6,10 +6,8 @@
   min-height: 800px;
 }
 
-.row-fluid{
+.row-fluid {
   white-space: nowrap;
-  display: flex;
-  align-items: flex-start;
 
   article {
     width: 270px;
@@ -31,6 +29,11 @@
       font-weight: bold;
     }
   }
+}
+
+.flexbox {
+  display: flex;
+  align-items: flex-start;
 }
 
 .cards {
@@ -57,7 +60,9 @@
     }
 
     &:hover {
-      .glyphicon { color: $light-grey; }
+      .glyphicon {
+        color: $light-grey;
+      }
     }
   }
 

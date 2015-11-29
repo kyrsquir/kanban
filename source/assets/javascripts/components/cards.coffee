@@ -1,5 +1,7 @@
 Vue.component 'cards',
-  props: ['cards', 'list', 'lists', 'update']
+  props: ['cards', 'list', 'lists', 'update', 'api', 'user']
+  data: ->
+    editingCards: false
   template: '<div class="cards">
                <card v-for="card in cards"
                      :add-card="addCard"
@@ -8,16 +10,14 @@ Vue.component 'cards',
                      :list="list"
                      :lists="lists"
                      :update="update"
-                     :update-cards-being-edited="updateBeingEdited"
+                     :api="api"
+                     :user="user"
+                     :editing-cards.sync="editingCards"
                      track-by="$index">
                </card>
-               <div class="card-dropzone" v-dropzone="x: dropCard($dropdata)"></div>
-               <p @click="addCard" class="add-link" v-if="!beingEdited">
-                 Add new card...
-               </p>
+               <div class="card-dropzone" v-dropzone:x="dropCard($dropdata)"></div>
+               <p @click="addCard" class="add-link" v-show="editingCards == false">Add new card</p>
              </div>'
-  data: ->
-    beingEdited: false
   methods:
     addCard: ->
       @cards.push
@@ -25,7 +25,6 @@ Vue.component 'cards',
       children = @$children
       Vue.nextTick =>
         children[children.length - 1].toggle 'cardForm'
-        @beingEdited = true
     dropCard: (drag) ->
       dropCards = @cards
       lists = @lists
@@ -34,53 +33,56 @@ Vue.component 'cards',
       dragPosition = dragCards.getElementIndex 'slug', drag.card.slug
       dropCards.push dragCards.splice(dragPosition, 1)[0]
       @update()
-    updateBeingEdited: (beingEdited) ->
-      #TODO remove this, use two-way data binding for beingEdited http://vuejs.org/guide/components.html#Prop_Binding_Types
-      @beingEdited = beingEdited
   components:
     card:
-      props: ['card', 'cards', 'add-card', 'list', 'lists', 'update', 'update-cards-being-edited']
-      template: '<component :is="view"
-                            :card="card"
-                            :cards="cards"
-                            :list="list"
-                            :lists="lists"
-                            :update-cards-being-edited="updateCardsBeingEdited"
-                            :toggle-card="toggle"
-                            :add-card="addCard"
-                            :update="update"
-                            keep-alive>
-                 </component>'
+      props: ['card', 'add-card', 'list', 'lists', 'update', 'editing-cards', 'api', 'user']
       data: ->
         view: 'cardName'
+      template: '<div>
+                   <component :is="view"
+                              :card="card"
+                              :list="list"
+                              :lists="lists"
+                              :toggle-card="toggle"
+                              :add-card="addCard"
+                              :update="update"
+                              :api="api"
+                              :user="user"
+                              keep-alive>
+                   </component>
+                 </div>'
       methods:
         toggle: (view) ->
-          if view == 'cardForm'
+          formComponentName = 'cardForm'
+          if view == formComponentName
+            @editingCards = true
             for listComponent in @$parent.$parent.$parent.$children
               cardsComponent = listComponent.$children[1]
-              if cardsComponent.beingEdited
+              if cardsComponent.editingCards
                 for cardComponent in cardsComponent.$children
-                  if cardComponent.view == 'cardForm'
+                  if cardComponent.view == formComponentName
                     cardFormComponent = cardComponent.$children[1]
                     cardFormComponent.close()
+          else
+            @editingCards = false
           @view = view
-          #TODO update parent's "being edited" here and don't pass it further to child components
       components:
         cardName:
-          props: ['card', 'toggle-card', 'list', 'update', 'lists', 'update-cards-being-edited']
+          props: ['card', 'toggle-card', 'list', 'update', 'lists', 'api', 'user']
           data: ->
             showModal: false
-          template: '<div class="card-dropzone" v-dropzone="x: moveCard($dropdata, card, list)"></div>
-                     <div class="card" v-draggable="x: {card: card, list: list, dragged: \'dragged\'}">
-                       <span class="glyphicon glyphicon-pencil pull-right" @click="edit"></span>
-                       <p @click="showModal = true">{{card.name}}</p>
-                     </div>
-                     <modal v-show="showModal" :card="card" :update="update"></modal>'
+          template: '<div>
+                       <div class="card-dropzone" v-dropzone:x="moveCard($dropdata, card, list)"></div>
+                       <div class="card" v-draggable:x="{card: card, list: list, dragged: \'dragged\'}">
+                         <span class="glyphicon glyphicon-pencil pull-right" @click="edit"></span>
+                         <p @click="showModal = true">{{card.name}}</p>
+                       </div>
+                       <modal v-show="showModal == true" :card="card" :update="update" :api="api" :user="user" :show-modal.sync="showModal"></modal>
+                     </div>'
           methods:
             edit: ->
               @card.oldName = @card.name
               @toggleCard 'cardForm'
-              @updateCardsBeingEdited true
             moveCard: (drag, dropZone, dropList) ->
               lists = @lists
               dragListId = drag.list.slug
@@ -96,36 +98,32 @@ Vue.component 'cards',
                 dropListCards.splice dropPosition, 0, dragListCards.splice(dragPosition, 1)[0]
               @update()
         cardForm:
-          props: ['card', 'toggle-card', 'update', 'list', 'add-card', 'update-cards-being-edited']
-          template: '<textarea v-model="card.name"
-                               rows="3"
-                               class="form-control mb1 card-input"
-                               v-el="cardname"
-                               @keypress.enter.prevent="save(true)"
-                               @keyup.esc="close"
-                               autofocus>
-                     </textarea>
-                     <button @click="save(false)" class="btn btn-success mb2">Save</button>
-                     <button @click="close" class="btn btn-default mb2">Close</button>'
-          created: ->
-            Vue.nextTick =>
-              @$$.cardname.focus()
+          props: ['card', 'toggle-card', 'update', 'list', 'add-card']
+          template: '<div>
+                       <textarea v-model="card.name"
+                                 rows="3"
+                                 class="form-control mb1 card-input"
+                                 @keypress.enter.prevent="save(true)"
+                                 @keyup.esc="close"
+                                 v-el:textarea>
+                       </textarea>
+                       <button @click="save(false)" class="btn btn-success mb2">Save</button>
+                       <button @click="close" class="btn btn-default mb2">Close</button>
+                     </div>'
+          attached: ->
+            @$els.textarea.focus()
           methods:
             close: ->
               if @card.oldName?
-                # existing card
                 @card.name = @card.oldName
-                @toggleCard 'cardName'
               else
-                # newly created card
                 @list.cards.pop()
-              @updateCardsBeingEdited false
+              @toggleCard 'cardName'
               delete @card.oldName
             save: (andCreateNext) ->
               if !!@card.name
                 @update()
                 @toggleCard 'cardName'
-                @updateCardsBeingEdited false
                 cards = @list.cards
                 cardComponent = @$parent
                 @addCard() if andCreateNext && cardComponent.card.slug == cards[cards.length - 1].slug

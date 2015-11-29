@@ -13,19 +13,18 @@
   </head>
 
   <body v-bind:style="{ backgroundColor: '#' + currentBoard.background_color }">
-    <%= partial "views/shared/settings" %>
-    <%= partial "views/shared/menu" %>
-    <%= partial "views/shared/header" %>
+    <settings :show-settings.sync="showSettings" :current-board.sync="currentBoard" :update="updateCurrentBoard"></settings>
+    <menu-component :set-current-board="setCurrentBoard" :show-menu="showMenu" :boards.sync="boards" :api="api"></menu-component>
+    <header-component :show-settings.sync="showSettings" :show-menu.sync="showMenu" :current-board="currentBoard"></header-component>
 
     <div class="container-fluid main-container">
       <div class="overflow">
-        <div class="row-fluid">
-          <board></board>
+        <div class="row-fluid flexbox">
+          <lists :update="updateCurrentBoard" :lists="currentBoard.lists" :api="api" :user="currentUser"></lists>
         </div>
       </div>
     </div>
 
-    <%= partial "views/shared/modal" %>
     <%= javascript_include_tag  "application" %>
   </body>
 </html>

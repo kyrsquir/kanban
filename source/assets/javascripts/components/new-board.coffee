@@ -1,38 +1,40 @@
 Vue.component 'new-board',
-  template: '<p class="mt2 mb2 add-link">
-               <component :is="view" :board="board" :toggle-board="toggle"></component>
-             </p>'
+  props: ['boards', 'api', 'set-current-board']
   data: ->
-    view: 'createButton'
-  methods:
-    toggle: (view) ->
-      @view = view
+    view: 'newBoardButton'
+  template: '<p class="mt2 mb2 add-link">
+               <component :is="view" :boards.sync="boards" :api="api" :view.sync="view" :set-current-board="setCurrentBoard"></component>
+             </p>'
   components:
-    createButton:
-      props: ['board', 'toggle-board']
-      template: '<button @click="edit" class="btn btn-default mb2">Create new board</button>'
-      methods:
-        edit: ->
-          @toggleBoard 'createForm'
-    createForm:
-      props: ['board', 'toggle-board']
-      template: '<input v-model="board.name" class="form-control mb1" @keypress.enter.prevent="createBoard" @keyup.esc="cancel" autofocus>
-                 <button @click="createBoard" class="btn btn-success mb2">Save</button>
-                 <button @click="cancel" class="btn btn-default mb2">Close</button>'
+    newBoardButton:
+      props: ['view']
+      template: '<button @click="view = \'newBoardForm\'" class="btn btn-default mb2">Create new board</button>'
+    newBoardForm:
+      props: ['view', 'boards', 'api', 'set-current-board']
+      data: ->
+        name: ''
+      template: '<div>
+                   <input v-model="name" class="form-control mb1" @keypress.enter.prevent="createBoard" @keyup.esc="cancel" v-el:input>
+                   <button @click="createBoard" class="btn btn-success mb2">Save</button>
+                   <button @click="cancel" class="btn btn-default mb2">Close</button>
+                 </div>'
+      attached: ->
+        @$els.input.focus()
       methods:
         createBoard: ->
-          name = @board.name
+          name = @name
           if !!name
-            root = @$parent.$parent
-            @$http.post(root.apiURL + '/boards',
-                name: name
-                background_color: '0079bf'
-                lists: []
+            @$http.post(@api + '/boards',
+              name: name
+              background_color: '0079bf'
+              lists: []
               (data) ->
-                root.boards.push data
-                root.setCurrentBoard data
-                @toggleBoard 'createButton'
+                @boards.push data
+                @setCurrentBoard data.id
+                @hideForm()
             ).error (data, status, request) ->
               console.log status + ' - ' + request
+        hideForm: ->
+          @view = 'newBoardButton'
         cancel: ->
-          @toggleBoard 'createButton'
+          @hideForm()

@@ -1,44 +1,51 @@
 Vue.component 'comments',
-  props: ['comments', 'update']
+  props: ['comments', 'update', 'user']
   data: ->
-    beingEdited: false
-  template: '<comment v-for="comment in comments"
-                      :comment="comment"
-                      :comments="comments"
-                      :id="$index"
-                      :update="update"
-                      :update-comments-being-edited="updateBeingEdited"
-                      track-by="$index">
-             </comment>
-             <p @click="addComment" class="add-link" v-show="!beingEdited">
-               Add a comment
-             </p>'
+    editingComments: false
+  template: '<div>
+               <comment v-for="comment in comments"
+                        :comment="comment"
+                        :comments="comments"
+                        :id="$index"
+                        :update="update"
+                        :editing-comments.sync="editingComments"
+                        track-by="$index">
+               </comment>
+               <button @click="addComment" class="btn btn-default mb2" v-show="editingComments == false">Add a comment</button>
+             </div>'
   methods:
     addComment: ->
       @comments.push
-        author: @$parent.$parent.$parent.$parent.$parent.$parent.$parent.$parent.currentUser
+        author: @user
         text: ''
       children = @$children
       Vue.nextTick =>
         children[children.length - 1].toggle 'commentForm'
-    updateBeingEdited: (beingEdited) ->
-      #TODO remove this, use two-way data binding for beingEdited http://vuejs.org/guide/components.html#Prop_Binding_Types
-      @beingEdited = beingEdited
   components:
     comment:
-      props: ['comment', 'comments', 'update', 'update-comments-being-edited']
+      props: ['comment', 'comments', 'update', 'editing-comments']
       data: ->
         view: 'commentName'
-      template: '<component :is="view"
-                            :comment="comment"
-                            :comments="comments"
-                            :update="update"
-                            :toggle-comment="toggle"
-                            track-by="$index">
-                 </component>'
+      template: '<div>
+                   <component :is="view"
+                              :comment="comment"
+                              :comments="comments"
+                              :update="update"
+                              :toggle-comment="toggle"
+                              track-by="$index">
+                   </component>
+                 </div>'
       methods:
         toggle: (view) ->
-          @updateCommentsBeingEdited (view == 'commentForm')
+          formComponentName = 'commentForm'
+          if view == formComponentName
+            @editingComments = true
+            for commentComponent in @$parent.$children
+              if commentComponent.view == formComponentName
+                for commentFormComponent in commentComponent.$children
+                  commentFormComponent.close()
+          else
+            @editingComments = false
           @view = view
       components:
         commentName:
@@ -50,14 +57,17 @@ Vue.component 'comments',
               @toggleComment 'commentForm'
         commentForm:
           props: ['comment', 'comments', 'update', 'toggle-comment']
-          template: '<input v-model="comment.text"
-                        class="form-control mb1"
-                        v-el="commentNameInput"
-                        @keypress.enter.prevent="save"
-                        @keyup.esc="close"
-                        autofocus>
-                 <button @click="save" class="btn btn-success mb2">Save</button>
-                 <button @click="close" class="btn btn-default mb2">Close</button>'
+          template: '<div>
+                       <input v-model="comment.text"
+                          class="form-control mb1"
+                          @keypress.enter.prevent="save"
+                          @keyup.esc="close"
+                          v-el:input>
+                       <button @click="save" class="btn btn-success mb2">Save</button>
+                       <button @click="close" class="btn btn-default mb2">Close</button>
+                     </div>'
+          attached: ->
+            @$els.input.focus()
           methods:
             close: ->
               @toggleComment 'commentName'
@@ -68,7 +78,6 @@ Vue.component 'comments',
                 # newly created comment
                 @comments.pop()
               delete @comment.oldText
-
             save: ->
               if !!@comment.text
                 @update()

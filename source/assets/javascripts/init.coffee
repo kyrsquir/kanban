@@ -24,54 +24,44 @@ App =
 
       data:
 #        apiURL: 'http://localhost:3025/api'
-        apiURL: 'https://api-kanban.herokuapp.com/api'
+        api: 'https://api-kanban.herokuapp.com/api'
         boards: []
         currentBoard: {}
-        showSettings: false
         showMenu: false
-        showModal: false
-        colors: ['0079bf', 'd29034', '519839', 'b04632', '89609e',
-                 'cd5a91', '4bbf6b', '00aecc', '838c91', '333',
-                 '202020', '2ecc71', 'ed7669', '272b33']
+        showSettings: false
         currentUser: 'testUser'
-        searchString: ''
 
       methods:
-        toggleSettings: ->
-          @showSettings = !@showSettings
-
-        toggleMenu: ->
-          @showMenu = !@showMenu
-
-        changeBackground: (color) ->
-          @currentBoard.background_color = color
-
         getBoards: ->
-          @$http.get @apiURL + '/boards', (data) ->
+          @$http.get @api + '/boards', (data) ->
             @$set 'boards', data
             @setCurrentBoard data[0].id
           .error (data, status, request) ->
             console.log status + ' - ' + request
-
         setCurrentBoard: (id) ->
-          @$http.get @apiURL + '/boards/' + id, (boardData) ->
-            boardComponent = @$children[1]
-            @currentBoard = boardComponent.board = boardData
+          @$http.get @api + '/boards/' + id, (boardData) ->
+            @currentBoard = boardData
             for list in boardData.lists
               if list.cards.length > 0
                 for card in list.cards
                   card.comments = []
                   card.comments.push
                     author: @currentUser
-                    text: 'comment 1 text'
+                    text: 'example comment 1'
                   card.comments.push
                     author: @currentUser
-                    text: 'comment 2 text'
-            boardComponent.lists = boardData.lists
+                    text: 'example comment 2'
             @showMenu = false
-
-        #TODO create settings component and move it there
-        saveBoardSettings: ->
-          @$children[1].save()
+        updateCurrentBoard: ->
+          currentBoard = @currentBoard
+          @$http.put(@api + '/boards/' + currentBoard.id,
+            name: currentBoard.name
+            background_color: currentBoard.background_color
+            lists: currentBoard.lists
+            (data, status, request) ->
+              console.log 'Successfully updated board <' + currentBoard.name + '>'
+              @showSettings = false
+          ).error (data, status, request) ->
+            console.log status + ' - ' + request
 # Inititalize main component
 new App.init
