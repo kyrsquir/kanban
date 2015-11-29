@@ -11,7 +11,7 @@ Vue.component 'modal',
                     <p>Comments:</p>
                     <comments :comments="card.comments" :update="update" :user="user"></comments>
                     <p>Tags: {{card.tags}}</p>
-                    <p>Members:</p>
+                    <p>Assignee:</p>
                     <members :members="card.members" :update="update" :api="api"></members>
                     <p>Actions:</p>
                     <button class="btn btn-default mb2">Delete</button>
